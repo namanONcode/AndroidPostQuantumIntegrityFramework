@@ -20,8 +20,18 @@ import org.gradle.api.tasks.*;
 /**
  * Gradle task that generates integrity metadata JSON file.
  *
- * <p>Output format: { "version": "1.0.0", "variant": "debug", "hashAlgorithm": "SHA-256",
- * "merkleRoot": "<hex>", "timestamp": "<ISO-8601>", "signerFingerprint": "<optional>" }
+ * <p>Output format:
+ *
+ * <pre>{@code
+ * {
+ *   "version": "1.0.0",
+ *   "variant": "debug",
+ *   "hashAlgorithm": "SHA-256",
+ *   "merkleRoot": "hex-string",
+ *   "timestamp": "ISO-8601-timestamp",
+ *   "signerFingerprint": "optional-fingerprint"
+ * }
+ * }</pre>
  */
 public abstract class GenerateMetadataTask extends DefaultTask {
 

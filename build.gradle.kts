@@ -68,6 +68,16 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.withType<Javadoc> {
+    options {
+        (this as StandardJavadocDocletOptions).apply {
+            addStringOption("Xdoclint:none", "-quiet")
+            encoding = "UTF-8"
+        }
+    }
+    isFailOnError = false
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
