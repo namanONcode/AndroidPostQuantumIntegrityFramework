@@ -9,8 +9,8 @@ group = "com.anchorpq"
 version = "1.0.0"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
     withSourcesJar()
     withJavadocJar()
 }
@@ -29,8 +29,20 @@ gradlePlugin {
             id = "com.anchorpq.integrity"
             implementationClass = "com.anchorpq.AnchorPQPlugin"
             displayName = "Anchor PQ Integrity Plugin"
-            description = "Post-quantum integrity verification plugin for Android applications using Merkle trees and ML-KEM (CRYSTALS-Kyber)"
-            tags.set(listOf("android", "security", "integrity", "merkle-tree", "post-quantum", "ml-kem", "kyber", "cryptography"))
+            description = "Post-quantum integrity verification plugin for Android applications " +
+                "using Merkle trees and ML-KEM (CRYSTALS-Kyber)"
+            tags.set(
+                listOf(
+                    "android",
+                    "security",
+                    "integrity",
+                    "merkle-tree",
+                    "post-quantum",
+                    "ml-kem",
+                    "kyber",
+                    "cryptography",
+                ),
+            )
         }
     }
 }
@@ -67,7 +79,10 @@ publishing {
 
             pom {
                 name.set("Anchor PQ Integrity Plugin")
-                description.set("Post-quantum integrity verification plugin for Android applications using Merkle trees and ML-KEM (CRYSTALS-Kyber)")
+                description.set(
+                    "Post-quantum integrity verification plugin for Android applications " +
+                        "using Merkle trees and ML-KEM (CRYSTALS-Kyber)",
+                )
                 url.set("https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework")
 
                 licenses {
