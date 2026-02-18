@@ -10,6 +10,7 @@ updates:
     labels:
       - "dependencies"
       - "gradle"
+      - "auto-merge"
     commit-message:
       prefix: "deps"
       include: "scope"
@@ -34,6 +35,7 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+      - "auto-merge"
     commit-message:
       prefix: "ci"
       include: "scope"
