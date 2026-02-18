@@ -2,7 +2,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     id("com.diffplug.spotless") version "6.25.0"
-    id("com.gradle.plugin-publish") version "1.2.1"
+    id("com.gradle.plugin-publish") version "2.0.0"
 }
 
 group = "io.github.namanoncode"
@@ -49,14 +49,14 @@ gradlePlugin {
 
 dependencies {
     // Bouncy Castle for ML-KEM (CRYSTALS-Kyber) support
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.83")
 
     // Android Gradle Plugin for AGP integration
-    compileOnly("com.android.tools.build:gradle:8.2.0")
+    compileOnly("com.android.tools.build:gradle:9.0.1")
 
     // Gson for JSON handling
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.13.2")
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
