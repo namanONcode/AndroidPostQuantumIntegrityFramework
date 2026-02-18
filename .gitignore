@@ -1,0 +1,82 @@
+# Gradle
+.gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Gradle Wrapper - keep for CI
+# gradle/wrapper/gradle-wrapper.jar
+# gradlew
+# gradlew.bat
+
+# Kotlin
+.kotlin/
+
+# Local configuration
+local.properties
+*.local
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### Android specific ###
+*.apk
+*.ap_
+*.aab
+
+# Generated files
+*.hprof
+*.log
+
+# Signing files
+*.jks
+*.keystore
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# Example app build outputs (keep source, exclude builds)
+example-android-app/app/build/
+example-android-app/build/
+example-android-app/.gradle/
+example-android-app/local.properties
+example-android-app/app/src/main/assets/integrity.json
+
+example-app/app/build/
+example-app/build/
+example-app/.gradle/
+example-app/local.properties
