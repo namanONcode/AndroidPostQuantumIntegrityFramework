@@ -1,6 +1,9 @@
+import org.gradle.internal.impldep.org.jsoup.nodes.Document
+
 plugins {
     `java-gradle-plugin`
     `maven-publish`
+    jacoco
     id("com.diffplug.spotless") version "6.25.0"
     id("com.gradle.plugin-publish") version "2.0.0"
 }
@@ -66,6 +69,15 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        Document.OutputSettings.Syntax.xml.required.set(true)
+        Document.OutputSettings.Syntax.html.required.set(true)
+    }
 }
 
 tasks.withType<Javadoc> {

@@ -34,7 +34,14 @@ jobs:
           JAVA_HOME: ${{ env.JAVA_HOME }}
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test jacocoTestReport
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: build/reports/jacoco/test/jacocoTestReport.xml
+          fail_ci_if_error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v6
