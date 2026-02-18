@@ -1,4 +1,3 @@
-import org.gradle.internal.impldep.org.jsoup.nodes.Document
 
 plugins {
     `java-gradle-plugin`
@@ -75,8 +74,8 @@ tasks.test {
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
-        Document.OutputSettings.Syntax.xml.required.set(true)
-        Document.OutputSettings.Syntax.html.required.set(true)
+        xml.required.set(true)
+        html.required.set(true)
     }
 }
 
