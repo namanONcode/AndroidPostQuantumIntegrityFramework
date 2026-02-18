@@ -1,7 +1,7 @@
 plugins {
     `java-gradle-plugin`
     `maven-publish`
-    id("com.diffplug.spotless") version "6.25.0"
+    id("com.diffplug.spotless") version "8.2.1"
     id("com.gradle.plugin-publish") version "1.2.1"
 }
 
