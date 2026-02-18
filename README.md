@@ -289,7 +289,7 @@ In your app module's `app/build.gradle.kts`:
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.anchorpq.integrity")  // Add this line
+    id("io.github.namanoncode.anchorpq")  // Add this line
 }
 
 android {
@@ -890,7 +890,7 @@ boolean supported = HashUtils.isAlgorithmSupported("SHA-256");
 #### 1. "Plugin not found" Error
 
 ```
-Plugin [id: 'com.anchorpq.integrity'] was not found
+Plugin [id: 'io.github.namanoncode.anchorpq'] was not found
 ```
 
 **Solution:** Ensure the plugin JAR is in the classpath:

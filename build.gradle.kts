@@ -5,7 +5,7 @@ plugins {
     id("com.gradle.plugin-publish") version "1.2.1"
 }
 
-group = "com.anchorpq"
+group = "io.github.namanoncode"
 version = "1.0.0"
 
 java {
@@ -26,7 +26,7 @@ gradlePlugin {
 
     plugins {
         create("anchorPQIntegrity") {
-            id = "com.anchorpq.integrity"
+            id = "io.github.namanoncode.anchorpq"
             implementationClass = "com.anchorpq.AnchorPQPlugin"
             displayName = "Anchor PQ Integrity Plugin"
             description = "Post-quantum integrity verification plugin for Android applications " +
@@ -81,8 +81,8 @@ tasks.withType<Javadoc> {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "com.anchorpq"
-            artifactId = "integrity-plugin"
+            groupId = "io.github.namanoncode"
+            artifactId = "anchorpq"
             version = project.version.toString()
 
             from(components["java"])

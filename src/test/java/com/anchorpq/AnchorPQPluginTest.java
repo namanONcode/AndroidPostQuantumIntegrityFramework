@@ -32,16 +32,16 @@ class AnchorPQPluginTest {
   @DisplayName("Should apply plugin successfully")
   void testPluginApplies() {
     project.getPluginManager().apply("java");
-    project.getPluginManager().apply("com.anchorpq.integrity");
+    project.getPluginManager().apply("io.github.namanoncode.anchorpq");
 
-    assertTrue(project.getPlugins().hasPlugin("com.anchorpq.integrity"));
+    assertTrue(project.getPlugins().hasPlugin("io.github.namanoncode.anchorpq"));
   }
 
   @Test
   @DisplayName("Should create extension")
   void testExtensionCreated() {
     project.getPluginManager().apply("java");
-    project.getPluginManager().apply("com.anchorpq.integrity");
+    project.getPluginManager().apply("io.github.namanoncode.anchorpq");
 
     AnchorPQExtension extension = project.getExtensions().findByType(AnchorPQExtension.class);
 
@@ -52,7 +52,7 @@ class AnchorPQPluginTest {
   @DisplayName("Extension should have default values")
   void testExtensionDefaults() {
     project.getPluginManager().apply("java");
-    project.getPluginManager().apply("com.anchorpq.integrity");
+    project.getPluginManager().apply("io.github.namanoncode.anchorpq");
 
     AnchorPQExtension extension = project.getExtensions().findByType(AnchorPQExtension.class);
 
@@ -66,7 +66,7 @@ class AnchorPQPluginTest {
   @DisplayName("Should register tasks for Java project")
   void testTasksRegistered() {
     project.getPluginManager().apply("java");
-    project.getPluginManager().apply("com.anchorpq.integrity");
+    project.getPluginManager().apply("io.github.namanoncode.anchorpq");
 
     // Force task registration and evaluation
     evaluateProject();
@@ -79,7 +79,7 @@ class AnchorPQPluginTest {
   @DisplayName("Extension configuration should be respected")
   void testExtensionConfiguration() {
     project.getPluginManager().apply("java");
-    project.getPluginManager().apply("com.anchorpq.integrity");
+    project.getPluginManager().apply("io.github.namanoncode.anchorpq");
 
     AnchorPQExtension extension = project.getExtensions().findByType(AnchorPQExtension.class);
 
@@ -96,7 +96,7 @@ class AnchorPQPluginTest {
   @DisplayName("Tasks should be in correct group")
   void testTaskGroup() {
     project.getPluginManager().apply("java");
-    project.getPluginManager().apply("com.anchorpq.integrity");
+    project.getPluginManager().apply("io.github.namanoncode.anchorpq");
     evaluateProject();
 
     var merkleTask = project.getTasks().findByName("generateMerkleRootMain");
@@ -108,7 +108,7 @@ class AnchorPQPluginTest {
   @DisplayName("Metadata task should depend on Merkle task")
   void testTaskDependencies() {
     project.getPluginManager().apply("java");
-    project.getPluginManager().apply("com.anchorpq.integrity");
+    project.getPluginManager().apply("io.github.namanoncode.anchorpq");
     evaluateProject();
 
     var metadataTask = project.getTasks().findByName("generateIntegrityMetadataMain");

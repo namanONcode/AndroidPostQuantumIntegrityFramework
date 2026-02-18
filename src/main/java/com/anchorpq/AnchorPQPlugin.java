@@ -16,11 +16,11 @@ import org.gradle.api.tasks.TaskProvider;
  * <p>This plugin computes a deterministic Merkle root of compiled application bytecode, generates
  * integrity metadata, and supports ML-KEM for secure runtime reporting.
  *
- * <p>Plugin ID: com.anchorpq.integrity
+ * <p>Plugin ID: io.github.namanoncode.anchorpq
  */
 public class AnchorPQPlugin implements Plugin<Project> {
 
-  public static final String PLUGIN_ID = "com.anchorpq.integrity";
+  public static final String PLUGIN_ID = "io.github.namanoncode.anchorpq";
   public static final String EXTENSION_NAME = "anchorpq";
   public static final String TASK_GROUP = "anchorpq";
 

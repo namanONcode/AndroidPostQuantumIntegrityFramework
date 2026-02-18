@@ -1,0 +1,84 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build plugin
+        run: ./gradlew build
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: Release v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## Android Post-Quantum Integrity Framework v${{ steps.get_version.outputs.VERSION }}
+            
+            ### Installation
+            
+            Add to your `build.gradle.kts`:
+            ```kotlin
+            plugins {
+                id("io.github.namanoncode.anchorpq") version "${{ steps.get_version.outputs.VERSION }}"
+            }
+            ```
+            
+            ### What's New
+            - Merkle tree computation for bytecode integrity verification
+            - Post-quantum ML-KEM (CRYSTALS-Kyber) encryption support
+            - Automatic integration with Android build lifecycle
+            - Generated integrity.json packaged into APK assets
+            
+            ### Downloads
+            - Plugin JAR attached below
+            - Also available on [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.namanoncode.anchorpq)
+            
+            See [README](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework#readme) for full documentation.
+          files: |
+            build/libs/*.jar
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
