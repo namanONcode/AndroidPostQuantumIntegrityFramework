@@ -2,6 +2,7 @@ package com.anchorpq.demo
 
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -46,6 +47,7 @@ class MainActivityInstrumentedTest {
     fun testVerifyButtonIsDisplayed() {
         // Verify the verify button is displayed and enabled
         onView(withId(R.id.btnVerify))
+            .perform(scrollTo())
             .check(matches(isDisplayed()))
             .check(matches(isEnabled()))
     }
@@ -54,6 +56,7 @@ class MainActivityInstrumentedTest {
     fun testServerUrlIsDisplayed() {
         // Verify server URL is displayed
         onView(withId(R.id.tvServerUrl))
+            .perform(scrollTo())
             .check(matches(isDisplayed()))
     }
 
@@ -61,6 +64,7 @@ class MainActivityInstrumentedTest {
     fun testStatusCardIsDisplayed() {
         // Verify status card is displayed
         onView(withId(R.id.cardStatus))
+            .perform(scrollTo())
             .check(matches(isDisplayed()))
     }
 
@@ -68,6 +72,7 @@ class MainActivityInstrumentedTest {
     fun testInitialStatusIsIdle() {
         // Verify initial status shows ready state
         onView(withId(R.id.tvStatus))
+            .perform(scrollTo())
             .check(matches(isDisplayed()))
             .check(matches(withText(R.string.status_idle)))
     }
@@ -76,6 +81,7 @@ class MainActivityInstrumentedTest {
     fun testCopyButtonIsClickable() {
         // Verify copy button is clickable
         onView(withId(R.id.btnCopyRoot))
+            .perform(scrollTo())
             .check(matches(isDisplayed()))
             .check(matches(isClickable()))
     }
