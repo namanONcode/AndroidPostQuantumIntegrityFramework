@@ -68,9 +68,16 @@ wait_for_server() {
 }
 
 cleanup() {
+    EXIT_CODE=$?
+    if [ $EXIT_CODE -ne 0 ]; then
+        log_error "Test failed with exit code $EXIT_CODE. Dumping server logs..."
+        docker compose logs
+    fi
+
     log_info "Cleaning up..."
     cd "$PROJECT_ROOT"
     docker compose down -v 2>/dev/null || true
+    exit $EXIT_CODE
 }
 
 # =============================================================================
