@@ -6,7 +6,7 @@ on:
     branches: ["main", "master"]
 jobs:
   e2e-test:
-    runs-on: ubuntu-latest
+    runs-on: macos-13 # Switches to macOS for native Hardware Acceleration
     timeout-minutes: 45
     permissions:
       contents: read
@@ -26,6 +26,14 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: gradle
+          
+      # ----------------------------
+      # Docker Setup for macOS
+      # ----------------------------
+      - name: Start Docker (Colima)
+        uses: abiosoft/colima-action@v1
+        with:
+          colima-args: '--cpu 2 --memory 4'
       
       # ----------------------------
       # Maven Cache
@@ -91,19 +99,20 @@ jobs:
       - name: Run Android Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
-          target: default
+          api-level: 33          # Bumped to a modern API level!
+          target: google_apis
           arch: x86_64
           profile: Nexus 6
           force-avd-creation: true
           disable-animations: true
+          # Removed the swiftshader fallback so it utilizes macOS hardware acceleration
           emulator-options: >
             -no-window
             -no-snapshot
             -noaudio
             -no-boot-anim
-            -gpu swiftshader_indirect
             -camera-back none
+            -no-metrics
           script: |
             echo "Unlocking device..."
             adb shell input keyevent 82
