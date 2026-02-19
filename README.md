@@ -1,4 +1,4 @@
-# 🛡️ Android Post-Quantum Integrity Framework
+# 🛡️ Anchor-pq / Android Post-Quantum Integrity Framework
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Gradle Plugin](https://img.shields.io/badge/Gradle-8.0%2B-green.svg)](https://gradle.org/)
