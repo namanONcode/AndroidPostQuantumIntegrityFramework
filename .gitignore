@@ -80,3 +80,17 @@ example-app/app/build/
 example-app/build/
 example-app/.gradle/
 example-app/local.properties
+
+### AnchorPQ Server ###
+anchorpq-server/target/
+anchorpq-server/.quarkus/
+anchorpq-server/.mvn/wrapper/maven-wrapper.jar
+
+# Environment files (keep example)
+.env
+!.env.example
+
+# ML-KEM keys (never commit!)
+*.bin
+keys/
+

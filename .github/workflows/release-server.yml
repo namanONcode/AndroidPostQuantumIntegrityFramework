@@ -1,0 +1,171 @@
+name: Release Server
+
+on:
+  push:
+    tags:
+      - 'server-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Server version to release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  release-server:
+    name: Release AnchorPQ Server
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    defaults:
+      run:
+        working-directory: anchorpq-server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            VERSION=${GITHUB_REF#refs/tags/server-v}
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update version in pom.xml
+        run: |
+          mvn versions:set -DnewVersion=${{ steps.get_version.outputs.VERSION }}
+          mvn versions:commit
+
+      - name: Build with Maven
+        run: mvn -B package -DskipTests
+
+      - name: Run tests
+        run: mvn -B test
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
+        continue-on-error: true
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/anchorpq-server
+          tags: |
+            type=raw,value=${{ steps.get_version.outputs.VERSION }}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./anchorpq-server
+          file: ./anchorpq-server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Create release artifacts
+        run: |
+          mkdir -p release
+          cp -r target/quarkus-app release/
+          cp Dockerfile release/
+          cp README.md release/
+          cp ../docker-compose.yml release/
+          cd release && zip -r ../anchorpq-server-${{ steps.get_version.outputs.VERSION }}.zip .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: server-v${{ steps.get_version.outputs.VERSION }}
+          name: AnchorPQ Server v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## AnchorPQ Verification Server v${{ steps.get_version.outputs.VERSION }}
+            
+            Post-Quantum Secure Mobile Application Integrity Verification Server using ML-KEM (CRYSTALS-Kyber).
+            
+            ### 🐳 Docker Images
+            
+            ```bash
+            # Pull from GitHub Container Registry
+            docker pull ghcr.io/${{ github.repository_owner }}/anchorpq-server:${{ steps.get_version.outputs.VERSION }}
+            
+            # Or use latest
+            docker pull ghcr.io/${{ github.repository_owner }}/anchorpq-server:latest
+            ```
+            
+            ### 🚀 Quick Start
+            
+            ```bash
+            # Using Docker Compose
+            docker-compose up -d
+            
+            # Or run standalone
+            docker run -p 8080:8080 \
+              -e DB_HOST=your-postgres-host \
+              -e DB_USERNAME=anchorpq \
+              -e DB_PASSWORD=your-secret \
+              ghcr.io/${{ github.repository_owner }}/anchorpq-server:${{ steps.get_version.outputs.VERSION }}
+            ```
+            
+            ### 📡 API Endpoints
+            
+            | Endpoint | Method | Description |
+            |----------|--------|-------------|
+            | `/public-key` | GET | Get ML-KEM public key |
+            | `/verify` | POST | Verify application integrity |
+            | `/admin/records` | GET/POST | Manage integrity records |
+            | `/health` | GET | Health check |
+            | `/swagger-ui` | GET | API documentation |
+            
+            ### 🔐 Security Features
+            
+            - ML-KEM (CRYSTALS-Kyber) post-quantum key encapsulation
+            - HKDF-SHA3-256 key derivation
+            - AES-256-GCM authenticated encryption
+            - Constant-time Merkle root comparison
+            
+            ### 📦 Downloads
+            
+            - **Docker Image**: `ghcr.io/${{ github.repository_owner }}/anchorpq-server:${{ steps.get_version.outputs.VERSION }}`
+            - **Release Archive**: See attached `anchorpq-server-${{ steps.get_version.outputs.VERSION }}.zip`
+            
+            See [Server README](https://github.com/${{ github.repository }}/tree/main/anchorpq-server#readme) for full documentation.
+          files: |
+            anchorpq-server/anchorpq-server-${{ steps.get_version.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

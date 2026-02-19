@@ -1,6 +1,8 @@
 version: 2
 updates:
-  # Gradle dependencies
+  # ============================================================================
+  # Gradle Plugin Dependencies
+  # ============================================================================
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
@@ -10,9 +12,10 @@ updates:
     labels:
       - "dependencies"
       - "gradle"
+      - "plugin"
       - "auto-merge"
     commit-message:
-      prefix: "deps"
+      prefix: "deps(plugin)"
       include: "scope"
     groups:
       bouncy-castle:
@@ -25,7 +28,56 @@ updates:
         patterns:
           - "com.android.tools.build:*"
 
+  # ============================================================================
+  # Quarkus Server Maven Dependencies
+  # ============================================================================
+  - package-ecosystem: "maven"
+    directory: "/anchorpq-server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "maven"
+      - "server"
+      - "auto-merge"
+    commit-message:
+      prefix: "deps(server)"
+      include: "scope"
+    groups:
+      quarkus:
+        patterns:
+          - "io.quarkus*"
+        update-types:
+          - "minor"
+          - "patch"
+      bouncy-castle:
+        patterns:
+          - "org.bouncycastle:*"
+      testing:
+        patterns:
+          - "io.rest-assured:*"
+          - "org.junit*"
+
+  # ============================================================================
+  # Docker Dependencies
+  # ============================================================================
+  - package-ecosystem: "docker"
+    directory: "/anchorpq-server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "server"
+    commit-message:
+      prefix: "deps(docker)"
+
+  # ============================================================================
   # GitHub Actions
+  # ============================================================================
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

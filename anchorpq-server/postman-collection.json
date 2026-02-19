@@ -1,0 +1,284 @@
+{
+  "info": {
+    "name": "AnchorPQ Verification Server",
+    "description": "Post-Quantum Secure Mobile Application Integrity Verification API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Key Exchange",
+      "item": [
+        {
+          "name": "Get Public Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public-key",
+              "host": ["{{baseUrl}}"],
+              "path": ["public-key"]
+            },
+            "description": "Fetch the server's ML-KEM public key for client key encapsulation"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Public Key Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public-key/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["public-key", "info"]
+            },
+            "description": "Get metadata about the server's public key without the key itself"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Raw Public Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public-key/raw",
+              "host": ["{{baseUrl}}"],
+              "path": ["public-key", "raw"]
+            },
+            "description": "Get the raw bytes of the ML-KEM public key"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Verification",
+      "item": [
+        {
+          "name": "Verify Integrity (Encrypted)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"encapsulatedKey\": \"<base64-encoded-mlkem-ciphertext>\",\n  \"encryptedPayload\": \"<base64-encoded-aes-gcm-ciphertext>\",\n  \"timestamp\": 1708300000000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["verify"]
+            },
+            "description": "Verify application integrity using an encrypted request.\n\nThe encapsulatedKey is the ML-KEM ciphertext from client-side encapsulation.\nThe encryptedPayload is the AES-256-GCM encrypted integrity payload.\n\nNote: This endpoint requires properly encrypted data from a client that has the server's public key."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Create Integrity Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": \"1.0.0\",\n  \"variant\": \"release\",\n  \"merkleRoot\": \"a1b2c3d4e5f6789012345678901234567890123456789012345678901234abcd\",\n  \"signerFingerprint\": \"fedcba0987654321fedcba0987654321fedcba0987654321fedcba09876543fe\",\n  \"description\": \"Initial release version\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/records",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "records"]
+            },
+            "description": "Create or update a canonical integrity record"
+          },
+          "response": []
+        },
+        {
+          "name": "List All Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/records",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "records"]
+            },
+            "description": "List all canonical integrity records"
+          },
+          "response": []
+        },
+        {
+          "name": "List Records by Version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/records?version=1.0.0",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "records"],
+              "query": [
+                {
+                  "key": "version",
+                  "value": "1.0.0"
+                }
+              ]
+            },
+            "description": "List integrity records filtered by version"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Record",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/records/1.0.0/release",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "records", "1.0.0", "release"]
+            },
+            "description": "Get a specific integrity record by version and variant"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Record",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/records/1.0.0/release",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "records", "1.0.0", "release"]
+            },
+            "description": "Soft-delete an integrity record"
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Import Records",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"version\": \"1.0.0\",\n    \"variant\": \"release\",\n    \"merkleRoot\": \"a1b2c3d4e5f6789012345678901234567890123456789012345678901234abcd\",\n    \"signerFingerprint\": \"fedcba0987654321fedcba0987654321fedcba0987654321fedcba09876543fe\"\n  },\n  {\n    \"version\": \"1.0.0\",\n    \"variant\": \"debug\",\n    \"merkleRoot\": \"b2c3d4e5f67890123456789012345678901234567890123456789012345bcdee\",\n    \"signerFingerprint\": \"fedcba0987654321fedcba0987654321fedcba0987654321fedcba09876543fe\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/records/bulk",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "records", "bulk"]
+            },
+            "description": "Import multiple integrity records at once"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Full health check"
+          },
+          "response": []
+        },
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "live"]
+            },
+            "description": "Liveness probe for Kubernetes"
+          },
+          "response": []
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "ready"]
+            },
+            "description": "Readiness probe for Kubernetes"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Documentation",
+      "item": [
+        {
+          "name": "OpenAPI Spec",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/openapi",
+              "host": ["{{baseUrl}}"],
+              "path": ["openapi"]
+            },
+            "description": "Get OpenAPI specification"
+          },
+          "response": []
+        },
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/swagger-ui",
+              "host": ["{{baseUrl}}"],
+              "path": ["swagger-ui"]
+            },
+            "description": "Interactive API documentation"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

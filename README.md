@@ -1,10 +1,30 @@
-# 🛡️ Anchor-pq / Android Post-Quantum Integrity Framework
+# 🛡️ AnchorPQ - Android Post-Quantum Integrity Framework
 
+[![CI Build](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/ci.yml/badge.svg)](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/codeql.yml/badge.svg)](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Gradle Plugin](https://img.shields.io/badge/Gradle-8.0%2B-green.svg)](https://gradle.org/)
 [![Android](https://img.shields.io/badge/Android-API%2026%2B-brightgreen.svg)](https://developer.android.com/)
+[![Quarkus](https://img.shields.io/badge/Quarkus-3.8%2B-red.svg)](https://quarkus.io/)
 
-A comprehensive Gradle plugin that provides **build-time integrity verification** for Android applications using **Merkle trees** and **post-quantum cryptography (ML-KEM/CRYSTALS-Kyber)**. This framework ensures your app hasn't been tampered with by computing a deterministic hash of compiled bytecode and enabling secure runtime verification.
+A comprehensive framework for **build-time integrity verification** and **runtime server-anchored validation** of Android applications using **Merkle trees** and **post-quantum cryptography (ML-KEM/CRYSTALS-Kyber)**.
+
+## 🏗️ Project Structure
+
+This monorepo contains two main components:
+
+| Component | Description | Documentation |
+|-----------|-------------|---------------|
+| **[Gradle Plugin](/)** | Build-time Merkle tree computation for Android apps | This README |
+| **[Verification Server](anchorpq-server/)** | Quarkus backend for runtime integrity verification | [Server README](anchorpq-server/README.md) |
+
+```
+AndroidPostQuantumIntegrityFramework/
+├── src/                    # Gradle Plugin source code
+├── anchorpq-server/        # Quarkus Verification Server
+├── docker-compose.yml      # Docker setup for server + PostgreSQL
+└── scripts/                # Helper scripts
+```
 
 ---
 
@@ -20,6 +40,7 @@ A comprehensive Gradle plugin that provides **build-time integrity verification*
 - [Generated Outputs](#-generated-outputs)
 - [Runtime Integration](#-runtime-integration)
 - [Server-Side Verification](#-server-side-verification)
+- [Verification Server](#-verification-server)
 - [Complete Example App](#-complete-example-app)
 - [API Reference](#-api-reference)
 - [Security Model](#-security-model)
@@ -33,10 +54,10 @@ A comprehensive Gradle plugin that provides **build-time integrity verification*
 
 ### What is this framework?
 
-The Android Post-Quantum Integrity Framework is a Gradle plugin that:
+The Android Post-Quantum Integrity Framework consists of:
 
-1. **At Build Time**: Computes a cryptographic fingerprint (Merkle root) of your app's compiled code
-2. **At Runtime**: Allows your app to verify this fingerprint against a trusted server
+1. **Gradle Plugin (Build Time)**: Computes a cryptographic fingerprint (Merkle root) of your app's compiled code
+2. **Verification Server (Runtime)**: Validates app integrity using server-anchored trust model
 3. **Post-Quantum Security**: Uses ML-KEM (CRYSTALS-Kyber) for quantum-resistant communication
 
 ### Why do you need it?
@@ -976,6 +997,97 @@ Enable info logging to see plugin details:
 
 ---
 
+## 🖥️ Verification Server
+
+The AnchorPQ Verification Server is a production-ready Quarkus backend that validates application integrity at runtime.
+
+### Quick Start with Docker
+
+```bash
+# Start server with PostgreSQL
+docker-compose up -d
+
+# Server available at http://localhost:8080
+# Swagger UI at http://localhost:8080/swagger-ui
+```
+
+### Server Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔐 **ML-KEM Key Exchange** | Post-quantum secure communication |
+| 🌲 **Merkle Root Verification** | Server-anchored integrity validation |
+| 🗄️ **PostgreSQL Storage** | Canonical integrity records database |
+| 📊 **OpenAPI/Swagger** | Interactive API documentation |
+| 🐳 **Docker Ready** | Production containerization |
+| ⚡ **Rate Limiting** | Basic abuse protection |
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/public-key` | GET | Fetch ML-KEM public key |
+| `/verify` | POST | Verify integrity (encrypted) |
+| `/admin/records` | GET/POST | Manage canonical records |
+| `/health` | GET | Health check |
+
+### Server Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      Android Client                              │
+│  1. Compute Merkle root from APK                                │
+│  2. Fetch server's ML-KEM public key                            │
+│  3. Encapsulate shared secret → derive AES key                  │
+│  4. Encrypt integrity payload with AES-GCM                      │
+│  5. POST /verify with encrypted request                         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   AnchorPQ Server (Quarkus)                      │
+│  1. ML-KEM decapsulate → recover shared secret                  │
+│  2. Derive AES key using HKDF-SHA3-256                          │
+│  3. Decrypt integrity payload                                    │
+│  4. Compare Merkle root with canonical database record          │
+│  5. Return: APPROVED | RESTRICTED | REJECTED                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Server Configuration
+
+```properties
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=anchorpq
+DB_USERNAME=anchorpq
+DB_PASSWORD=your_secure_password
+
+# ML-KEM (CRYSTALS-Kyber)
+anchorpq.crypto.mlkem.parameter-set=ML-KEM-768
+```
+
+### CI/CD Integration
+
+Register canonical Merkle roots after each build:
+
+```bash
+# In your CI pipeline after successful build
+curl -X POST http://your-server:8080/admin/records \
+  -H "Content-Type: application/json" \
+  -d '{
+    "version": "1.0.0",
+    "variant": "release",
+    "merkleRoot": "'$(cat build/integrity/release/merkle-root.txt)'",
+    "signerFingerprint": "your-signer-sha256"
+  }'
+```
+
+📖 **Full Documentation**: See [anchorpq-server/README.md](anchorpq-server/README.md) for complete server documentation.
+
+---
+
 ## 📋 Requirements
 
 | Requirement | Version |
@@ -985,6 +1097,14 @@ Enable info logging to see plugin details:
 | Android Gradle Plugin | 8.0+ |
 | Android SDK | API 26+ (minSdk) |
 | Kotlin | 1.9+ (optional) |
+
+### Server Requirements
+
+| Requirement | Version |
+|-------------|---------|
+| Java | 17+ |
+| Docker | 20.10+ (for containerized deployment) |
+| PostgreSQL | 14+ |
 
 ### Dependencies
 

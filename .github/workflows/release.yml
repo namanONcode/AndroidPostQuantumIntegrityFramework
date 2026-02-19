@@ -1,28 +1,30 @@
-name: Create Release
+name: Release Plugin
 
 on:
   push:
     tags:
       - 'v*'
+      - '!server-v*'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 1.0.0)'
+        description: 'Plugin version to release (e.g., 1.0.0)'
         required: true
         default: '1.0.0'
 
 jobs:
-  release:
+  release-plugin:
+    name: Release AnchorPQ Plugin
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up JDK 11
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
@@ -50,11 +52,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.get_version.outputs.VERSION }}
-          name: Release v${{ steps.get_version.outputs.VERSION }}
+          name: AnchorPQ Plugin v${{ steps.get_version.outputs.VERSION }}
           body: |
-            ## Android Post-Quantum Integrity Framework v${{ steps.get_version.outputs.VERSION }}
+            ## AnchorPQ Gradle Plugin v${{ steps.get_version.outputs.VERSION }}
             
-            ### Installation
+            Post-Quantum Secure Android Application Integrity Framework using Merkle Trees and ML-KEM (CRYSTALS-Kyber).
+            
+            ### 📦 Installation
             
             Add to your `build.gradle.kts`:
             ```kotlin
@@ -63,17 +67,31 @@ jobs:
             }
             ```
             
-            ### What's New
-            - Merkle tree computation for bytecode integrity verification
-            - Post-quantum ML-KEM (CRYSTALS-Kyber) encryption support
-            - Automatic integration with Android build lifecycle
-            - Generated integrity.json packaged into APK assets
+            Or in `build.gradle`:
+            ```groovy
+            plugins {
+                id 'io.github.namanoncode.anchorpq' version '${{ steps.get_version.outputs.VERSION }}'
+            }
+            ```
             
-            ### Downloads
+            ### ✨ Features
+            
+            - 🌳 **Merkle Tree Computation** - Deterministic hash of compiled bytecode
+            - 🔐 **ML-KEM Encryption** - Post-quantum secure communication
+            - 📱 **AGP 8+ Compatible** - Works with modern Android builds
+            - ⚡ **Automatic Integration** - Hooks into build lifecycle
+            
+            ### 🔗 Related
+            
+            - **Verification Server**: Use with [AnchorPQ Server](https://github.com/${{ github.repository }}/tree/main/anchorpq-server) for runtime integrity verification
+            - **Gradle Plugin Portal**: [io.github.namanoncode.anchorpq](https://plugins.gradle.org/plugin/io.github.namanoncode.anchorpq)
+            
+            ### 📥 Downloads
+            
             - Plugin JAR attached below
             - Also available on [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.github.namanoncode.anchorpq)
             
-            See [README](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework#readme) for full documentation.
+            See [README](https://github.com/${{ github.repository }}#readme) for full documentation.
           files: |
             build/libs/*.jar
           draft: false
