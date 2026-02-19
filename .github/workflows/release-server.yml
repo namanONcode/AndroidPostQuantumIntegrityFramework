@@ -19,10 +19,6 @@ jobs:
       contents: write
       packages: write
 
-    defaults:
-      run:
-        working-directory: anchorpq-server
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,16 +39,14 @@ jobs:
             VERSION=${GITHUB_REF#refs/tags/server-v}
             echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           fi
-
-      - name: Update version in pom.xml
-        run: |
-          mvn versions:set -DnewVersion=${{ steps.get_version.outputs.VERSION }}
-          mvn versions:commit
+          echo "Using version: ${{ steps.get_version.outputs.VERSION }}"
 
       - name: Build with Maven
+        working-directory: anchorpq-server
         run: mvn -B package -DskipTests
 
       - name: Run tests
+        working-directory: anchorpq-server
         run: mvn -B test
 
       - name: Set up Docker Buildx
@@ -64,14 +58,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
-        continue-on-error: true
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata for Docker
         id: meta
@@ -96,9 +82,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       - name: Create release artifacts
+        working-directory: anchorpq-server
         run: |
           mkdir -p release
-          cp -r target/quarkus-app release/
+          cp -r target/quarkus-app release/ || true
           cp Dockerfile release/
           cp README.md release/
           cp ../docker-compose.yml release/
