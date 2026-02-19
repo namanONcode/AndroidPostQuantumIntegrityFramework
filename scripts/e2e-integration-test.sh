@@ -70,7 +70,7 @@ wait_for_server() {
 cleanup() {
     log_info "Cleaning up..."
     cd "$PROJECT_ROOT"
-    docker-compose down -v 2>/dev/null || true
+    docker compose down -v 2>/dev/null || true
 }
 
 # =============================================================================
@@ -128,10 +128,10 @@ step_4_start_docker_environment() {
     cd "$PROJECT_ROOT"
     
     # Stop any existing containers
-    docker-compose down -v 2>/dev/null || true
+    docker compose down -v 2>/dev/null || true
     
     # Start fresh
-    docker-compose up -d --build
+    docker compose up -d --build
     
     # Wait for server to be ready
     wait_for_server
@@ -258,7 +258,7 @@ print_summary() {
     echo ""
     echo "To run the demo app:"
     echo "  1. Install on emulator: adb install $DEMO_APP_DIR/app/build/outputs/apk/release/app-release-unsigned.apk"
-    echo "  2. Ensure server is running: docker-compose up"
+    echo "  2. Ensure server is running: docker compose up"
     echo "  3. Click 'Verify Integrity' in the app"
     echo ""
 }

@@ -45,7 +45,7 @@ jobs:
       - name: Start Server for Instrumental Tests
         run: |
           # Start server and database
-          docker-compose up -d postgres anchorpq-server
+          docker compose up -d postgres anchorpq-server
           
           # Wait for server availability (simple loop)
           echo "Waiting for server to be ready..."
