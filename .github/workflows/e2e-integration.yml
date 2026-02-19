@@ -73,7 +73,8 @@ jobs:
           target: default
           arch: x86_64
           profile: Nexus 6
-          force-avd-creation: false
+          force-avd-creation: true
+          wipe-data: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           

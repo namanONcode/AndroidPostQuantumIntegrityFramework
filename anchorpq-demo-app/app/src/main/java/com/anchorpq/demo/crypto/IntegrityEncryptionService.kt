@@ -59,8 +59,8 @@ class IntegrityEncryptionService {
 
         // Create the verification request
         return VerificationRequest(
-            encapsulatedKey = Base64.encodeToString(encrypted.encapsulatedKey, Base64.NO_WRAP),
-            encryptedPayload = Base64.encodeToString(encrypted.encryptedData, Base64.NO_WRAP),
+            encapsulatedKey = encodeBase64(encrypted.encapsulatedKey),
+            encryptedPayload = encodeBase64(encrypted.encryptedData),
             timestamp = System.currentTimeMillis(),
             nonce = generateNonce()
         )
@@ -91,12 +91,25 @@ class IntegrityEncryptionService {
     }
 
     /**
+     * Helper to encode bytes to Base64 string.
+     * Uses java.util.Base64 on API 26+ for standard compliance,
+     * falls back to android.util.Base64 on older devices.
+     */
+    private fun encodeBase64(bytes: ByteArray): String {
+        return if (Build.VERSION.SDK_INT >= 26) {
+            java.util.Base64.getEncoder().encodeToString(bytes)
+        } else {
+            Base64.encodeToString(bytes, Base64.NO_WRAP)
+        }
+    }
+
+    /**
      * Generates a random nonce for replay protection.
      */
     private fun generateNonce(): String {
         val nonce = ByteArray(16)
         secureRandom.nextBytes(nonce)
-        return Base64.encodeToString(nonce, Base64.NO_WRAP)
+        return encodeBase64(nonce)
     }
 }
 
