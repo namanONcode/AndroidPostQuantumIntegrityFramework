@@ -90,7 +90,16 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
-          script: ./gradlew -p anchorpq-demo-app :app:connectedCheck
+          script: |
+            # Wait for package manager service to be fully ready
+            timeout 60s bash -c 'until adb shell pm list packages > /dev/null 2>&1; do echo "Waiting for package manager..."; sleep 2; done' || {
+              echo "Package manager did not become ready in time"
+              exit 1
+            }
+            echo "Package manager is ready"
+
+            # Run instrumented tests
+            ./gradlew -p anchorpq-demo-app :app:connectedCheck
           target: default
           arch: x86_64
           force-avd-creation: true
