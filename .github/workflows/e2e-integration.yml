@@ -2,9 +2,9 @@ name: AnchorPQ E2E Integration
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
 
 jobs:
   e2e-test:
@@ -43,16 +43,16 @@ jobs:
             ${{ runner.os }}-maven-
 
       # ----------------------------
-      # Gradle Wrapper Permission
+      # Permissions
       # ----------------------------
-      - name: Grant execute permission
+      - name: Grant execute permissions
         run: |
           chmod +x gradlew
           chmod +x anchorpq-demo-app/gradlew
           chmod +x scripts/*.sh
 
       # ----------------------------
-      # Backend E2E Script
+      # Backend E2E
       # ----------------------------
       - name: Run Backend E2E Integration
         run: ./scripts/e2e-integration-test.sh
@@ -60,7 +60,7 @@ jobs:
           MAVEN_PROJECTBASEDIR: ${{ github.workspace }}/anchorpq-server
 
       # ----------------------------
-      # Android Unit Tests (Fast JVM)
+      # Android Unit Tests
       # ----------------------------
       - name: Run Android Unit Tests
         run: ./gradlew -p anchorpq-demo-app :app:testDebugUnitTest
@@ -92,7 +92,7 @@ jobs:
             }'
 
       # ----------------------------
-      # Instrumentation Tests (Stable Emulator)
+      # Instrumentation Tests
       # ----------------------------
       - name: Run Android Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -111,33 +111,34 @@ jobs:
             -gpu swiftshader_indirect
             -camera-back none
           script: |
-            set -e
+            bash -c '
+              set -e
 
-            echo "Waiting for emulator..."
-            adb wait-for-device
+              echo "Waiting for emulator..."
+              adb wait-for-device
 
-            echo "Waiting for sys.boot_completed..."
-            BOOTED=""
-            for i in $(seq 1 90); do
-              BOOTED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-              if [ "$BOOTED" = "1" ]; then
-                break
+              echo "Waiting for sys.boot_completed..."
+              for i in $(seq 1 90); do
+                BOOTED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")
+                if [ "$BOOTED" = "1" ]; then
+                  break
+                fi
+                echo "Still waiting for boot..."
+                sleep 2
+              done
+
+              if [ "$BOOTED" != "1" ]; then
+                echo "Emulator failed to boot"
+                adb devices
+                exit 1
               fi
-              echo "Still waiting for boot..."
-              sleep 2
-            done
 
-            if [ "$BOOTED" != "1" ]; then
-              echo "Emulator failed to boot"
-              adb devices
-              exit 1
-            fi
+              echo "Unlocking device..."
+              adb shell input keyevent 82
 
-            echo "Unlocking device..."
-            adb shell input keyevent 82
-
-            echo "Running instrumentation tests..."
-            ./gradlew -p anchorpq-demo-app :app:connectedCheck --stacktrace
+              echo "Running instrumentation tests..."
+              ./gradlew -p anchorpq-demo-app :app:connectedCheck --stacktrace
+            '
 
       # ----------------------------
       # Upload Test Reports
