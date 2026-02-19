@@ -1,26 +1,22 @@
 name: AnchorPQ E2E Integration
-
 on:
   push:
     branches: ["main", "master"]
   pull_request:
     branches: ["main", "master"]
-
 jobs:
   e2e-test:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-
     permissions:
       contents: read
-
     steps:
       # ----------------------------
       # Checkout
       # ----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      
       # ----------------------------
       # Java Setup (with Gradle cache)
       # ----------------------------
@@ -30,7 +26,7 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: gradle
-
+      
       # ----------------------------
       # Maven Cache
       # ----------------------------
@@ -41,7 +37,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
+      
       # ----------------------------
       # Permissions
       # ----------------------------
@@ -50,7 +46,7 @@ jobs:
           chmod +x gradlew
           chmod +x anchorpq-demo-app/gradlew
           chmod +x scripts/*.sh
-
+      
       # ----------------------------
       # Backend E2E
       # ----------------------------
@@ -58,27 +54,25 @@ jobs:
         run: ./scripts/e2e-integration-test.sh
         env:
           MAVEN_PROJECTBASEDIR: ${{ github.workspace }}/anchorpq-server
-
+      
       # ----------------------------
       # Android Unit Tests
       # ----------------------------
       - name: Run Android Unit Tests
         run: ./gradlew -p anchorpq-demo-app :app:testDebugUnitTest
-
+      
       # ----------------------------
       # Start Backend for Instrumentation
       # ----------------------------
       - name: Start Backend Server
         run: |
           docker compose up -d --build postgres anchorpq-server
-
           echo "Waiting for backend..."
           timeout 120s bash -c '
             until curl -sf http://localhost:8080/public-key > /dev/null 2>&1; do
               sleep 3
             done
           '
-
           echo "Seeding database..."
           curl -sf \
             -X POST "http://localhost:8080/admin/records" \
@@ -90,7 +84,7 @@ jobs:
               "signerFingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
               "description": "Demo app debug build - CI test"
             }'
-
+            
       # ----------------------------
       # Instrumentation Tests
       # ----------------------------
@@ -111,35 +105,12 @@ jobs:
             -gpu swiftshader_indirect
             -camera-back none
           script: |
-            bash -c '
-              set -e
-
-              echo "Waiting for emulator..."
-              adb wait-for-device
-
-              echo "Waiting for sys.boot_completed..."
-              for i in $(seq 1 90); do
-                BOOTED=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")
-                if [ "$BOOTED" = "1" ]; then
-                  break
-                fi
-                echo "Still waiting for boot..."
-                sleep 2
-              done
-
-              if [ "$BOOTED" != "1" ]; then
-                echo "Emulator failed to boot"
-                adb devices
-                exit 1
-              fi
-
-              echo "Unlocking device..."
-              adb shell input keyevent 82
-
-              echo "Running instrumentation tests..."
-              ./gradlew -p anchorpq-demo-app :app:connectedCheck --stacktrace
-            '
-
+            echo "Unlocking device..."
+            adb shell input keyevent 82
+            
+            echo "Running instrumentation tests..."
+            ./gradlew -p anchorpq-demo-app :app:connectedCheck --stacktrace
+            
       # ----------------------------
       # Upload Test Reports
       # ----------------------------
