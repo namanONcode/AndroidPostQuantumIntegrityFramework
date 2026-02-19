@@ -9,6 +9,8 @@ on:
 jobs:
   e2e-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 45
     
     steps:
