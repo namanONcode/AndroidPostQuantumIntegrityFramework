@@ -42,7 +42,7 @@ jobs:
           MAVEN_PROJECTBASEDIR: ${{ github.workspace }}/anchorpq-server
 
       - name: Run Android Unit Tests
-        run: ./gradlew :app:testDebugUnitTest
+        run: ./gradlew -p anchorpq-demo-app :app:testDebugUnitTest
 
       - name: Start Server for Instrumental Tests
         run: |
@@ -69,7 +69,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          script: ./gradlew :app:connectedCheck
+          script: ./gradlew -p anchorpq-demo-app :app:connectedCheck
           target: default
           arch: x86_64
           profile: Nexus 6
