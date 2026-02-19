@@ -3,7 +3,9 @@
 # Multi-stage build for optimized production image
 # =============================================================================
 
+# =============================================================================
 # Stage 1: Build
+# =============================================================================
 FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /app
@@ -17,28 +19,30 @@ RUN mvn dependency:go-offline -B
 # Copy source code
 COPY src ./src
 
-# Build the application (fast-jar is the default)
+# Build the application (fast-jar is default for Quarkus)
 RUN mvn package -DskipTests
+
 
 # =============================================================================
 # Stage 2: Production Runtime
 # =============================================================================
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-jammy
 
-# Labels for container metadata
+# Labels
 LABEL maintainer="AnchorPQ Team"
 LABEL description="AnchorPQ Post-Quantum Secure Integrity Verification Server"
 LABEL version="1.0.0"
 
-# Install wget for health check and create non-root user
+# Install wget for health check + create non-root user
 RUN apt-get update && apt-get install -y --no-install-recommends wget \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd -r anchorpq && useradd -r -g anchorpq anchorpq
+    && groupadd -r anchorpq \
+    && useradd -r -g anchorpq anchorpq
 
 # Set working directory
 WORKDIR /app
 
-# Copy the built Quarkus application (fast-jar format)
+# Copy Quarkus fast-jar output
 COPY --from=build /app/target/quarkus-app/lib/ /app/lib/
 COPY --from=build /app/target/quarkus-app/*.jar /app/
 COPY --from=build /app/target/quarkus-app/app/ /app/app/
@@ -50,17 +54,17 @@ RUN mkdir -p /app/keys && chown -R anchorpq:anchorpq /app
 # Switch to non-root user
 USER anchorpq
 
-# Expose the application port
+# Expose port
 EXPOSE 8080
 
-# Health check
+# Health check (Quarkus SmallRye Health)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health/ready || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/q/health/ready || exit 1
 
-# Environment variables (can be overridden)
+# JVM tuning (good baseline for containers)
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
 ENV QUARKUS_HTTP_HOST="0.0.0.0"
 
-# Run the application
+# Run application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/quarkus-run.jar"]
 
