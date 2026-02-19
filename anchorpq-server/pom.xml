@@ -27,7 +27,7 @@
 
         <bouncycastle.version>1.83</bouncycastle.version>
 
-        <spotless.version>2.43.0</spotless.version>
+        <spotless.version>3.2.1</spotless.version>
     </properties>
 
     <dependencyManagement>
