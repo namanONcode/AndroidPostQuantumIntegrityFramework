@@ -29,6 +29,35 @@ updates:
           - "com.android.tools.build:*"
 
   # ============================================================================
+  # Demo App Gradle Dependencies
+  # ============================================================================
+  - package-ecosystem: "gradle"
+    directory: "/anchorpq-demo-app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "gradle"
+      - "demo-app"
+    commit-message:
+      prefix: "deps(demo)"
+      include: "scope"
+    groups:
+      androidx:
+        patterns:
+          - "androidx.*"
+          - "com.google.android.material:*"
+      networking:
+        patterns:
+          - "com.squareup.retrofit2:*"
+          - "com.squareup.okhttp3:*"
+      bouncy-castle:
+        patterns:
+          - "org.bouncycastle:*"
+
+  # ============================================================================
   # Quarkus Server Maven Dependencies
   # ============================================================================
   - package-ecosystem: "maven"
