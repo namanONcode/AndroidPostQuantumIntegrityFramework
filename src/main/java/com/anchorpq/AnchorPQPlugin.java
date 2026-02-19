@@ -281,6 +281,15 @@ public class AnchorPQPlugin implements Plugin<Project> {
             logger.info("Configured {} to run after {}", merkleTaskName, compileTaskName);
           }
 
+          // Also depend on Kotlin compile task if it exists
+          String kotlinCompileTaskName = findKotlinCompileTaskName(variant);
+          Task kotlinCompileTask = p.getTasks().findByName(kotlinCompileTaskName);
+
+          if (kotlinCompileTask != null) {
+            merkleTask.configure(task -> task.dependsOn(kotlinCompileTask));
+            logger.info("Configured {} to run after {}", merkleTaskName, kotlinCompileTaskName);
+          }
+
           // Hook into assemble task if it exists
           String assembleTaskName = "assemble" + capitalizedVariant;
           Task assembleTask = p.getTasks().findByName(assembleTaskName);
@@ -307,7 +316,13 @@ public class AnchorPQPlugin implements Plugin<Project> {
   }
 
   private File findClassesDirectory(Project project, String variant) {
-    // Try Android-style path first
+    // Try Kotlin classes path first (most common for Android Kotlin projects)
+    File kotlinPath = new File(project.getBuildDir(), "tmp/kotlin-classes/" + variant);
+    if (kotlinPath.exists()) {
+      return kotlinPath;
+    }
+
+    // Try Android-style path (Java)
     File androidPath =
         new File(project.getBuildDir(), "intermediates/javac/" + variant + "/classes");
     if (androidPath.exists()) {
@@ -333,15 +348,25 @@ public class AnchorPQPlugin implements Plugin<Project> {
       return javaPath;
     }
 
-    // Default to Android path (will be created during build)
-    return androidPath;
+    // Default to Kotlin path for Android projects (will be created during build)
+    return kotlinPath;
   }
 
   private String findCompileTaskName(String variant) {
     if ("main".equals(variant)) {
       return "compileJava";
     }
+    // For Android projects, return the Java compile task name
+    // The Kotlin task name would be "compile" + capitalize(variant) + "Kotlin"
+    // We'll handle both in the afterEvaluate block
     return "compile" + capitalize(variant) + "JavaWithJavac";
+  }
+
+  private String findKotlinCompileTaskName(String variant) {
+    if ("main".equals(variant)) {
+      return "compileKotlin";
+    }
+    return "compile" + capitalize(variant) + "Kotlin";
   }
 
   private void configureBuildConfigInjection(

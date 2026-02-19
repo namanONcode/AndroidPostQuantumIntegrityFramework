@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme -->
+    <style name="Theme.AnchorPQDemo" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_variant</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_variant</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+
+    <!-- Card Style -->
+    <style name="Widget.AnchorPQ.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/card_background</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="contentPadding">16dp</item>
+    </style>
+
+    <!-- Status Card Styles -->
+    <style name="Widget.AnchorPQ.StatusCard.Approved" parent="Widget.AnchorPQ.Card">
+        <item name="strokeColor">@color/status_approved</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+    <style name="Widget.AnchorPQ.StatusCard.Restricted" parent="Widget.AnchorPQ.Card">
+        <item name="strokeColor">@color/status_restricted</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+    <style name="Widget.AnchorPQ.StatusCard.Rejected" parent="Widget.AnchorPQ.Card">
+        <item name="strokeColor">@color/status_rejected</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+    <!-- Button Styles -->
+    <style name="Widget.AnchorPQ.Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <style name="Widget.AnchorPQ.Button.Secondary" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <!-- Text Styles -->
+    <style name="TextAppearance.AnchorPQ.Title" parent="TextAppearance.MaterialComponents.Headline5">
+        <item name="android:textColor">@color/on_background</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.AnchorPQ.Subtitle" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.AnchorPQ.Body" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/on_surface</item>
+    </style>
+
+    <style name="TextAppearance.AnchorPQ.Monospace" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.AnchorPQ.Status.Approved" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/status_approved</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.AnchorPQ.Status.Restricted" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/status_restricted</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.AnchorPQ.Status.Rejected" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/status_rejected</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+</resources>
+

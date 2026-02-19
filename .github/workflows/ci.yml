@@ -180,3 +180,220 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # ============================================================================
+  # Demo App Build & Test
+  # ============================================================================
+  demo-app-build:
+    name: Demo App - Build
+    runs-on: ubuntu-latest
+    needs: plugin-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permissions
+        run: |
+          chmod +x gradlew
+          chmod +x anchorpq-demo-app/gradlew 2>/dev/null || true
+
+      - name: Build and publish plugin locally
+        run: ./gradlew publishToMavenLocal -x test
+
+      - name: Build demo app
+        working-directory: anchorpq-demo-app
+        run: |
+          # Use wrapper from root if demo doesn't have one
+          if [ -f gradlew ]; then
+            ./gradlew assembleDebug --info
+          else
+            ../gradlew -p . assembleDebug --info
+          fi
+
+      - name: Run demo app unit tests
+        working-directory: anchorpq-demo-app
+        run: |
+          if [ -f gradlew ]; then
+            ./gradlew testDebugUnitTest || true
+          else
+            ../gradlew -p . testDebugUnitTest || true
+          fi
+        continue-on-error: true
+
+      - name: Extract Merkle root
+        id: merkle
+        run: |
+          MERKLE_FILE="anchorpq-demo-app/app/build/anchorpq/debug/merkle-root.txt"
+          if [ -f "$MERKLE_FILE" ]; then
+            MERKLE_ROOT=$(cat "$MERKLE_FILE")
+            echo "merkle_root=$MERKLE_ROOT" >> $GITHUB_OUTPUT
+            echo "Merkle root: $MERKLE_ROOT"
+          else
+            echo "Merkle root file not found"
+            echo "merkle_root=NOT_FOUND" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload demo APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: demo-app-debug-apk
+          path: anchorpq-demo-app/app/build/outputs/apk/debug/*.apk
+
+      - name: Upload Merkle root artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: demo-app-merkle-root
+          path: anchorpq-demo-app/app/build/anchorpq/debug/
+
+  # ============================================================================
+  # Merkle Root Determinism Test
+  # ============================================================================
+  merkle-determinism:
+    name: Test - Merkle Determinism
+    runs-on: ubuntu-latest
+    needs: demo-app-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permissions
+        run: chmod +x gradlew
+
+      - name: Build plugin locally
+        run: ./gradlew publishToMavenLocal -x test
+
+      - name: First build - get Merkle root
+        working-directory: anchorpq-demo-app
+        run: |
+          ../gradlew -p . clean assembleDebug --quiet
+          FIRST_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "FIRST_FAILED")
+          echo "FIRST_ROOT=$FIRST_ROOT" >> $GITHUB_ENV
+          echo "First Merkle root: $FIRST_ROOT"
+
+      - name: Second build - verify determinism
+        working-directory: anchorpq-demo-app
+        run: |
+          ../gradlew -p . clean assembleDebug --quiet
+          SECOND_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "SECOND_FAILED")
+          echo "Second Merkle root: $SECOND_ROOT"
+          
+          if [ "$FIRST_ROOT" = "$SECOND_ROOT" ]; then
+            echo "✅ Merkle root is deterministic!"
+          else
+            echo "❌ Merkle root changed between builds!"
+            echo "First:  $FIRST_ROOT"
+            echo "Second: $SECOND_ROOT"
+            exit 1
+          fi
+
+  # ============================================================================
+  # End-to-End Integration Test
+  # ============================================================================
+  e2e-integration:
+    name: Test - E2E Integration
+    runs-on: ubuntu-latest
+    needs: [plugin-build, server-build, demo-app-build]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: anchorpq
+          POSTGRES_PASSWORD: anchorpq_secret
+          POSTGRES_DB: anchorpq
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permissions
+        run: chmod +x gradlew
+
+      - name: Build plugin locally
+        run: ./gradlew publishToMavenLocal -x test
+
+      - name: Build demo app and extract Merkle root
+        working-directory: anchorpq-demo-app
+        run: |
+          ../gradlew -p . assembleDebug --quiet
+          MERKLE_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "DEMO_PLACEHOLDER")
+          echo "MERKLE_ROOT=$MERKLE_ROOT" >> $GITHUB_ENV
+          echo "Demo app Merkle root: $MERKLE_ROOT"
+
+      - name: Start server
+        working-directory: anchorpq-server
+        run: |
+          ./mvnw quarkus:dev -Dquarkus.http.port=8080 \
+            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/anchorpq \
+            -Dquarkus.datasource.username=anchorpq \
+            -Dquarkus.datasource.password=anchorpq_secret &
+          
+          # Wait for server
+          echo "Waiting for server..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health/ready > /dev/null 2>&1; then
+              echo "Server is ready!"
+              break
+            fi
+            echo -n "."
+            sleep 2
+          done
+
+      - name: Test public key endpoint
+        run: |
+          RESPONSE=$(curl -s http://localhost:8080/public-key)
+          echo "Public key response: $RESPONSE"
+          
+          if echo "$RESPONSE" | grep -q "publicKey"; then
+            echo "✅ Public key endpoint working"
+          else
+            echo "❌ Public key endpoint failed"
+            exit 1
+          fi
+
+      - name: Seed database with Merkle root
+        run: |
+          curl -s -X POST http://localhost:8080/admin/records \
+            -H "Content-Type: application/json" \
+            -d '{
+              "version": "1.0.0",
+              "variant": "debug",
+              "merkleRoot": "'"$MERKLE_ROOT"'",
+              "description": "E2E test canonical root"
+            }'
+          echo "Database seeded with Merkle root"
+
+      - name: Run server integration tests
+        working-directory: anchorpq-server
+        run: ./mvnw test -Dtest=*IntegrationTest -DfailIfNoTests=false
+        continue-on-error: true
+

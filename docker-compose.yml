@@ -3,8 +3,6 @@
 # Production-ready setup with PostgreSQL and AnchorPQ Server
 # =============================================================================
 
-version: '3.8'
-
 services:
   # ===========================================================================
   # PostgreSQL Database
@@ -19,7 +17,8 @@ services:
       POSTGRES_DB: ${DB_NAME:-anchorpq}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      # Note: init-db.sql must have read permissions (chmod 644)
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:z
     ports:
       - "${DB_EXTERNAL_PORT:-5432}:5432"
     healthcheck:

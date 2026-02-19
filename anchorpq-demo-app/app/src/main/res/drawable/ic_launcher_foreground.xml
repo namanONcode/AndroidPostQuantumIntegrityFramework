@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Shield shape representing security -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20L54,20L30,30L30,55C30,72 40,86 54,92C68,86 78,72 78,55L78,30L54,20Z"/>
+    <!-- Lock icon in center -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M54,45C50.7,45 48,47.7 48,51L48,54L46,54C44.9,54 44,54.9 44,56L44,68C44,69.1 44.9,70 46,70L62,70C63.1,70 64,69.1 64,68L64,56C64,54.9 63.1,54 62,54L60,54L60,51C60,47.7 57.3,45 54,45ZM54,48C55.7,48 57,49.3 57,51L57,54L51,54L51,51C51,49.3 52.3,48 54,48ZM54,59C55.7,59 57,60.3 57,62C57,63.7 55.7,65 54,65C52.3,65 51,63.7 51,62C51,60.3 52.3,59 54,59Z"/>
+    <!-- Q symbol for quantum -->
+    <path
+        android:fillColor="#00897B"
+        android:pathData="M67,73L71,77L69,79L65,75L67,73Z"/>
+</vector>
+

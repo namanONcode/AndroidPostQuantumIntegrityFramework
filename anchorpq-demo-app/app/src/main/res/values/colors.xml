@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors - Secure Blue/Green Theme -->
+    <color name="primary">#1976D2</color>
+    <color name="primary_variant">#1565C0</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="secondary">#00897B</color>
+    <color name="secondary_variant">#00796B</color>
+
+    <!-- Background Colors -->
+    <color name="background">#FAFAFA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F5F5F5</color>
+
+    <!-- Status Colors -->
+    <color name="status_approved">#4CAF50</color>
+    <color name="status_restricted">#FF9800</color>
+    <color name="status_rejected">#F44336</color>
+    <color name="status_idle">#757575</color>
+
+    <!-- Text Colors -->
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="on_background">#212121</color>
+    <color name="on_surface">#212121</color>
+    <color name="text_secondary">#757575</color>
+
+    <!-- Card Colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_border">#E0E0E0</color>
+
+    <!-- Crypto Indicator -->
+    <color name="crypto_secure">#2E7D32</color>
+    <color name="crypto_text">#1B5E20</color>
+</resources>
+

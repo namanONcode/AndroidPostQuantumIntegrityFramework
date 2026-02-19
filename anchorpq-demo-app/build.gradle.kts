@@ -1,0 +1,53 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    id("com.android.application") version "8.7.0" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.22" apply false
+    id("com.diffplug.spotless") version "6.25.0"
+    // AnchorPQ plugin will be applied at app module level
+}
+
+buildscript {
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.7.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
+        // AnchorPQ plugin dependency
+        classpath("io.github.namanoncode:anchorpq:1.0.0")
+    }
+}
+
+allprojects {
+    // Apply Spotless for code formatting
+    apply(plugin = "com.diffplug.spotless")
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            target("**/*.kt")
+            targetExclude("**/build/**/*.kt")
+            ktlint("1.1.1")
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+        kotlinGradle {
+            target("*.gradle.kts")
+            ktlint("1.1.1")
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+        java {
+            target("**/*.java")
+            googleJavaFormat("1.19.2").aosp()
+            removeUnusedImports()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+}
+
+
+

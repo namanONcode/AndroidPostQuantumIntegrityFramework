@@ -11,19 +11,22 @@ A comprehensive framework for **build-time integrity verification** and **runtim
 
 ## 🏗️ Project Structure
 
-This monorepo contains two main components:
+This monorepo contains three main components:
 
 | Component | Description | Documentation |
 |-----------|-------------|---------------|
 | **[Gradle Plugin](/)** | Build-time Merkle tree computation for Android apps | This README |
 | **[Verification Server](anchorpq-server/)** | Quarkus backend for runtime integrity verification | [Server README](SERVER-README.md) |
+| **[Demo App](anchorpq-demo-app/)** | Production-grade Android demo with ML-KEM | [Demo README](anchorpq-demo-app/README.md) |
 
 ```
 AndroidPostQuantumIntegrityFramework/
 ├── src/                    # Gradle Plugin source code
 ├── anchorpq-server/        # Quarkus Verification Server
+├── anchorpq-demo-app/      # Production-grade Android Demo App
+├── scripts/                # Helper scripts (E2E tests, DB seeding)
 ├── docker-compose.yml      # Docker setup for server + PostgreSQL
-└── scripts/                # Helper scripts
+└── .github/workflows/      # CI/CD pipeline
 ```
 
 ---
@@ -757,7 +760,74 @@ app.listen(8080, () => {
 
 ## 📚 Complete Example App
 
-A complete example app is included in the `example-android-app/` directory. Here's its structure:
+### AnchorPQ Demo Application
+
+A complete production-grade demo application is included in the `anchorpq-demo-app/` directory. This demo showcases the full integrity verification flow with real post-quantum cryptography.
+
+**Features:**
+- 🔐 Real ML-KEM (CRYSTALS-Kyber) key encapsulation
+- 🔒 AES-256-GCM encryption of integrity payloads
+- 🌲 Merkle root display and verification
+- 📱 Material Design UI with status indicators
+- 🧪 Unit and instrumentation tests
+
+**Quick Start:**
+
+```bash
+# 1. Build and publish the plugin locally
+./gradlew publishToMavenLocal
+
+# 2. Start the verification server
+docker-compose up --build
+
+# 3. Build the demo app
+cd anchorpq-demo-app
+../gradlew assembleDebug
+
+# 4. Install on emulator
+adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+**Demo App Architecture:**
+
+```
+anchorpq-demo-app/
+├── app/
+│   ├── src/main/java/com/anchorpq/demo/
+│   │   ├── crypto/           # ML-KEM client implementation
+│   │   │   ├── MLKemClient.kt
+│   │   │   └── IntegrityEncryptionService.kt
+│   │   ├── model/            # API data models
+│   │   ├── network/          # Retrofit API client
+│   │   └── ui/               # MainActivity & ViewModel
+│   └── build.gradle.kts      # Plugin integration
+├── build.gradle.kts
+└── README.md                 # Detailed documentation
+```
+
+For complete documentation, see [anchorpq-demo-app/README.md](anchorpq-demo-app/README.md).
+
+### Verification Flow Demo
+
+When you click "Verify Integrity" in the demo app:
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Demo App      │────▶│  Fetch ML-KEM   │────▶│  Encapsulate    │
+│  Click Verify   │     │  Public Key     │     │  Shared Secret  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                                        │
+                                                        ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Display Result │◀────│  Server Returns │◀────│  Encrypt &      │
+│  APPROVED/      │     │  APPROVED/      │     │  Send Payload   │
+│  REJECTED       │     │  REJECTED       │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+### Legacy Example (Reference Only)
+
+A simpler example app structure is shown below for reference:
 
 ```
 example-android-app/
@@ -793,7 +863,7 @@ example-android-app/
 
 ```bash
 # From the repository root
-cd example-android-app
+cd anchorpq-demo-app
 
 # Build the debug APK
 ./gradlew assembleDebug
@@ -801,6 +871,7 @@ cd example-android-app
 # The APK will be at:
 # app/build/outputs/apk/debug/app-debug.apk
 ```
+
 
 ---
 

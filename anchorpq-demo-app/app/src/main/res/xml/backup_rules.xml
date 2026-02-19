@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<backup_rules xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UnusedResources">
+    <!-- No backup rules needed -->
+</backup_rules>
+

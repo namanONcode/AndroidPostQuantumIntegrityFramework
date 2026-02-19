@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">AnchorPQ Demo</string>
+    <string name="title_integrity_verification">Integrity Verification</string>
+    <string name="description_app">Post-Quantum Secure App Integrity Demo</string>
+
+    <!-- UI Labels -->
+    <string name="label_merkle_root">Merkle Root:</string>
+    <string name="label_version">Version:</string>
+    <string name="label_variant">Build Variant:</string>
+    <string name="label_verification_status">Verification Status:</string>
+    <string name="label_server_response">Server Response:</string>
+    <string name="label_server_url">Server URL:</string>
+
+    <!-- Button Labels -->
+    <string name="btn_verify_integrity">Verify Integrity</string>
+    <string name="btn_refresh">Refresh</string>
+    <string name="btn_copy_root">Copy Root</string>
+
+    <!-- Status Messages -->
+    <string name="status_idle">Ready to verify</string>
+    <string name="status_connecting">Connecting to server...</string>
+    <string name="status_fetching_key">Fetching ML-KEM public key...</string>
+    <string name="status_encrypting">Encrypting integrity payload...</string>
+    <string name="status_verifying">Verifying integrity...</string>
+    <string name="status_approved">✓ APPROVED - Application is authentic</string>
+    <string name="status_restricted">⚠ RESTRICTED - Partial verification</string>
+    <string name="status_rejected">✗ REJECTED - Verification failed</string>
+    <string name="status_error">Error: %s</string>
+
+    <!-- Cryptographic Info -->
+    <string name="crypto_algorithm">Algorithm: ML-KEM-768 + AES-256-GCM</string>
+    <string name="crypto_hash">Hash: SHA3-256</string>
+
+    <!-- Error Messages -->
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_server_unreachable">Server unreachable. Is the server running?</string>
+    <string name="error_encryption_failed">Encryption failed. Please try again.</string>
+    <string name="error_unknown">An unexpected error occurred.</string>
+
+    <!-- Information -->
+    <string name="info_how_it_works">How It Works</string>
+    <string name="info_description">This demo verifies application integrity using post-quantum cryptography:\n\n1. Computes Merkle root of app bytecode\n2. Establishes ML-KEM secure channel\n3. Encrypts integrity report with AES-GCM\n4. Server validates against canonical hash</string>
+</resources>
+
