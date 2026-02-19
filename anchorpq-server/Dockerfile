@@ -4,7 +4,7 @@
 # =============================================================================
 
 # Stage 1: Build
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
@@ -23,15 +23,17 @@ RUN mvn package -DskipTests
 # =============================================================================
 # Stage 2: Production Runtime
 # =============================================================================
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 # Labels for container metadata
 LABEL maintainer="AnchorPQ Team"
 LABEL description="AnchorPQ Post-Quantum Secure Integrity Verification Server"
 LABEL version="1.0.0"
 
-# Create non-root user for security
-RUN addgroup -S anchorpq && adduser -S anchorpq -G anchorpq
+# Install wget for health check and create non-root user
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r anchorpq && useradd -r -g anchorpq anchorpq
 
 # Set working directory
 WORKDIR /app
