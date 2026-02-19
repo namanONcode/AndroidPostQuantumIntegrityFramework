@@ -34,6 +34,7 @@ jobs:
       - name: Grant execute permission for gradlew and scripts
         run: |
           chmod +x gradlew
+          chmod +x anchorpq-demo-app/gradlew
           chmod +x scripts/*.sh
 
       - name: Run E2E Integration Script
@@ -65,16 +66,26 @@ jobs:
               "description": "Demo app debug build - CI test"
             }'
 
+      - name: Test Public Key Endpoint
+        run: |
+          RESPONSE=$(curl -s http://localhost:8080/public-key)
+          echo "Public key response: $RESPONSE"
+          
+          if echo "$RESPONSE" | grep -q "publicKey"; then
+            echo "✅ Public key endpoint working"
+          else
+            echo "❌ Public key endpoint failed"
+            exit 1
+          fi
+
       - name: Run Android Instrumental Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 30
           script: ./gradlew -p anchorpq-demo-app :app:connectedCheck
           target: default
           arch: x86_64
-          profile: Nexus 6
           force-avd-creation: true
-          wipe-data: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           
