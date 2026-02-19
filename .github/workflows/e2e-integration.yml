@@ -34,6 +34,7 @@ jobs:
       - name: Grant execute permission for gradlew and scripts
         run: |
           chmod +x gradlew
+          chmod +x anchorpq-demo-app/gradlew
           chmod +x scripts/*.sh
 
       - name: Run E2E Integration Script
@@ -46,16 +47,20 @@ jobs:
 
       - name: Start Server for Instrumental Tests
         run: |
-          # Start server and database
-          docker compose up -d postgres anchorpq-server
+          # Ensure containers are running (rebuild if needed)
+          docker compose up -d --build postgres anchorpq-server
           
-          # Wait for server availability (simple loop)
+          # Wait for server availability with retries
           echo "Waiting for server to be ready..."
-          timeout 120s bash -c 'until curl -s http://localhost:8080/public-key; do sleep 2; done' || (echo "Server start failed!" && docker compose logs && exit 1)
+          timeout 120s bash -c 'until curl -sf http://localhost:8080/public-key > /dev/null 2>&1; do sleep 3; done' || {
+            echo "Server start failed! Docker logs:"
+            docker compose logs
+            exit 1
+          }
           
           # Seed Database (Required because E2E script cleans up volume)
-          # Using the same seed logic as the script
-          curl -s -X POST "http://localhost:8080/admin/records" \
+          curl -sf --retry 3 --retry-delay 2 --retry-connrefused \
+            -X POST "http://localhost:8080/admin/records" \
             -H "Content-Type: application/json" \
             -d '{
               "version": "1.0.0",
@@ -65,16 +70,36 @@ jobs:
               "description": "Demo app debug build - CI test"
             }'
 
+      - name: Test Public Key Endpoint
+        run: |
+          RESPONSE=$(curl -sf --retry 5 --retry-delay 3 --retry-connrefused http://localhost:8080/public-key) || {
+            echo "❌ Public key endpoint failed (curl error $?)"
+            docker compose logs anchorpq-server
+            exit 1
+          }
+          echo "Public key response: $RESPONSE"
+          
+          if echo "$RESPONSE" | grep -q "publicKey"; then
+            echo "✅ Public key endpoint working"
+          else
+            echo "❌ Public key endpoint returned unexpected response"
+            exit 1
+          fi
+
       - name: Run Android Instrumental Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
-          script: ./gradlew -p anchorpq-demo-app :app:connectedCheck
+          api-level: 30
+          script: |
+            adb kill-server
+            adb start-server
+            adb wait-for-device
+            timeout 60s bash -c 'until adb shell pm list packages > /dev/null 2>&1; do echo "Waiting for package manager..."; sleep 2; done' || exit 1
+            echo "Package manager is ready"
+            ./gradlew -p anchorpq-demo-app :app:connectedCheck
           target: default
           arch: x86_64
-          profile: Nexus 6
           force-avd-creation: true
-          wipe-data: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           
