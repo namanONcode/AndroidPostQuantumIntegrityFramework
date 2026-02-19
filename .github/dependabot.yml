@@ -41,6 +41,7 @@ updates:
       - "dependencies"
       - "gradle"
       - "demo-app"
+      - "auto-merge"
     commit-message:
       prefix: "deps(demo)"
       include: "scope"
