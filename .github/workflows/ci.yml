@@ -319,7 +319,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U anchorpq -d anchorpq"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -395,6 +395,7 @@ jobs:
               "version": "1.0.0",
               "variant": "debug",
               "merkleRoot": "'"$MERKLE_ROOT"'",
+              "signerFingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
               "description": "E2E test canonical root"
             }'
           echo "Database seeded with Merkle root"
