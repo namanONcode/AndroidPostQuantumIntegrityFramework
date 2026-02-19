@@ -22,7 +22,7 @@
         <quarkus.platform.version>3.31.4</quarkus.platform.version>
         <compiler-plugin.version>3.12.1</compiler-plugin.version>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
-        <bouncycastle.version>1.78</bouncycastle.version>
+        <bouncycastle.version>1.83</bouncycastle.version>
     </properties>
 
     <dependencyManagement>
