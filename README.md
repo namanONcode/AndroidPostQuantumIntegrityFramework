@@ -16,7 +16,7 @@ This monorepo contains two main components:
 | Component | Description | Documentation |
 |-----------|-------------|---------------|
 | **[Gradle Plugin](/)** | Build-time Merkle tree computation for Android apps | This README |
-| **[Verification Server](anchorpq-server/)** | Quarkus backend for runtime integrity verification | [Server README](anchorpq-server/README.md) |
+| **[Verification Server](anchorpq-server/)** | Quarkus backend for runtime integrity verification | [Server README](SERVER-README.md) |
 
 ```
 AndroidPostQuantumIntegrityFramework/
@@ -1084,7 +1084,7 @@ curl -X POST http://your-server:8080/admin/records \
   }'
 ```
 
-📖 **Full Documentation**: See [anchorpq-server/README.md](anchorpq-server/README.md) for complete server documentation.
+📖 **Full Documentation**: See [anchorpq-server/README.md](SERVER-README.md) for complete server documentation.
 
 ---
 
