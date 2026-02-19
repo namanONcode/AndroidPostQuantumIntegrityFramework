@@ -1,6 +1,7 @@
 pluginManagement {
+    includeBuild("..") // Resolve AnchorPQ plugin from the root project
     repositories {
-        mavenLocal()  // For locally published AnchorPQ plugin
+        mavenLocal()
         google()
         mavenCentral()
         gradlePluginPortal()
