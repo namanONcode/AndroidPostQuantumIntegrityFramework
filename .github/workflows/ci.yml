@@ -319,7 +319,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U anchorpq -d anchorpq"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -349,18 +349,21 @@ jobs:
           echo "MERKLE_ROOT=$MERKLE_ROOT" >> $GITHUB_ENV
           echo "Demo app Merkle root: $MERKLE_ROOT"
 
-      - name: Start server
+      - name: Build and start server
         working-directory: anchorpq-server
         run: |
-          ./mvnw quarkus:dev -Dquarkus.http.port=8080 \
-            -Dquarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/anchorpq \
-            -Dquarkus.datasource.username=anchorpq \
-            -Dquarkus.datasource.password=anchorpq_secret &
+          # Build server JAR (production mode uses PostgreSQL config from application.properties)
+          mvn -B package -DskipTests
           
-          # Wait for server
+          # Run server with correct database credentials
+          java -Dquarkus.datasource.username=anchorpq \
+            -Dquarkus.datasource.password=anchorpq_secret \
+            -jar target/quarkus-app/quarkus-run.jar &
+          
+          # Wait for server with extended timeout
           echo "Waiting for server..."
-          for i in {1..30}; do
-            if curl -s http://localhost:8080/health/ready > /dev/null 2>&1; then
+          for i in {1..60}; do
+            if curl -sf http://localhost:8080/health/ready > /dev/null 2>&1; then
               echo "Server is ready!"
               break
             fi
@@ -370,30 +373,35 @@ jobs:
 
       - name: Test public key endpoint
         run: |
-          RESPONSE=$(curl -s http://localhost:8080/public-key)
+          RESPONSE=$(curl -sf --retry 5 --retry-delay 3 --retry-connrefused http://localhost:8080/public-key) || {
+            echo "❌ Public key endpoint failed (curl error $?)"
+            exit 1
+          }
           echo "Public key response: $RESPONSE"
           
           if echo "$RESPONSE" | grep -q "publicKey"; then
             echo "✅ Public key endpoint working"
           else
-            echo "❌ Public key endpoint failed"
+            echo "❌ Public key endpoint returned unexpected response"
             exit 1
           fi
 
       - name: Seed database with Merkle root
         run: |
-          curl -s -X POST http://localhost:8080/admin/records \
+          curl -sf --retry 3 --retry-delay 2 --retry-connrefused \
+            -X POST http://localhost:8080/admin/records \
             -H "Content-Type: application/json" \
             -d '{
               "version": "1.0.0",
               "variant": "debug",
               "merkleRoot": "'"$MERKLE_ROOT"'",
+              "signerFingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
               "description": "E2E test canonical root"
             }'
           echo "Database seeded with Merkle root"
 
       - name: Run server integration tests
         working-directory: anchorpq-server
-        run: ./mvnw test -Dtest=*IntegrationTest -DfailIfNoTests=false
+        run: mvn -B test -Dtest=*IntegrationTest -DfailIfNoTests=false
         continue-on-error: true
 
