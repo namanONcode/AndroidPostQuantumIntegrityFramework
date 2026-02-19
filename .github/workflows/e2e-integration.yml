@@ -90,18 +90,32 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
-          script: |
-            adb kill-server
-            adb start-server
-            adb wait-for-device
-            timeout 60s bash -c 'until adb shell pm list packages > /dev/null 2>&1; do echo "Waiting for package manager..."; sleep 2; done' || exit 1
-            echo "Package manager is ready"
-            ./gradlew -p anchorpq-demo-app :app:connectedCheck
           target: default
           arch: x86_64
           force-avd-creation: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb kill-server
+            adb start-server
+
+            echo "Waiting for emulator device..."
+            adb wait-for-device
+
+            echo "Waiting for sys.boot_completed..."
+            timeout 180s bash -c 'until adb shell getprop sys.boot_completed | grep -m 1 "1"; do echo "Still waiting for boot..."; sleep 2; done' || {
+              echo "Emulator failed to boot"
+              adb devices
+              exit 1
+            }
+
+            echo "Unlocking screen..."
+            adb shell input keyevent 82
+
+            echo "Emulator fully booted"
+            adb devices
+
+            ./gradlew -p anchorpq-demo-app :app:connectedCheck --stacktrace
           
       - name: Upload Test Reports
         if: always()
