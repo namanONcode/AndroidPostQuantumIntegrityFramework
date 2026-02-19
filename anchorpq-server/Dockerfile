@@ -26,7 +26,7 @@ RUN mvn package -DskipTests
 # =============================================================================
 # Stage 2: Production Runtime
 # =============================================================================
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 # Labels
 LABEL maintainer="AnchorPQ Team"
