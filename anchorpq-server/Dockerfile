@@ -23,7 +23,7 @@ RUN mvn package -DskipTests
 # =============================================================================
 # Stage 2: Production Runtime
 # =============================================================================
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 # Labels for container metadata
 LABEL maintainer="AnchorPQ Team"
