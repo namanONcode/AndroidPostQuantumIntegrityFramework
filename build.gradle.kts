@@ -23,8 +23,8 @@ repositories {
 }
 
 gradlePlugin {
-    website.set("https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework")
-    vcsUrl.set("https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework.git")
+    website.set("https://github.com/namanONcode/Anchor-pq")
+    vcsUrl.set("https://github.com/namanONcode/Anchor-pq.git")
 
     plugins {
         create("anchorPQIntegrity") {
@@ -104,7 +104,7 @@ publishing {
                     "Post-quantum integrity verification plugin for Android applications " +
                         "using Merkle trees and ML-KEM (CRYSTALS-Kyber)",
                 )
-                url.set("https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework")
+                url.set("https://github.com/namanONcode/Anchor-pq")
 
                 licenses {
                     license {
@@ -122,9 +122,9 @@ publishing {
                 }
 
                 scm {
-                    connection.set("scm:git:git://github.com/namanoncode/AndroidPostQuantumIntegrityFramework.git")
-                    developerConnection.set("scm:git:ssh://github.com/namanoncode/AndroidPostQuantumIntegrityFramework.git")
-                    url.set("https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework")
+                    connection.set("scm:git:git://github.com/namanONcode/Anchor-pq.git")
+                    developerConnection.set("scm:git:ssh://github.com/namanONcode/Anchor-pq.git")
+                    url.set("https://github.com/namanONcode/Anchor-pq")
                 }
             }
         }
