@@ -209,6 +209,55 @@ The plugin automatically excludes generated files that change every build:
 
 ## 📦 Installation
 
+Post-quantum integrity verification plugin for Android applications using Merkle trees and ML-KEM (CRYSTALS-Kyber).
+
+### Using the plugins DSL
+
+Add this plugin to your build using the plugins DSL:
+
+```kotlin
+plugins {
+  id("io.github.namanoncode.anchorpq") version "1.0.0"
+}
+```
+
+See also:
+
+Adding the plugin to build logic for usage in precompiled script plugins.
+See the relevant documentation for more information.
+
+Add this plugin as a dependency to `<convention-plugins-build>/build.gradle(.kts)`:
+
+```kotlin
+dependencies {
+  implementation("io.github.namanoncode.anchorpq:io.github.namanoncode.anchorpq.gradle.plugin:1.0.0")
+}
+```
+
+It can then be applied in the precompiled script plugin:
+```kotlin
+plugins {
+  id("io.github.namanoncode.anchorpq")
+}
+```
+
+### The legacy method of plugin application
+
+See the relevant documentation for more information.
+
+```kotlin
+buildscript {
+  repositories {
+    gradlePluginPortal()
+  }
+  dependencies {
+    classpath("io.github.namanoncode.anchorpq:io.github.namanoncode.anchorpq.gradle.plugin:1.0.0")
+  }
+}
+
+apply(plugin = "io.github.namanoncode.anchorpq")
+```
+
 ### Method 1: Local JAR (Development)
 
 **Step 1:** Build the plugin JAR
@@ -713,48 +762,22 @@ Or if verification fails:
 }
 ```
 
-### Sample Node.js Server
+### 🖥️ Example AnchorPQ Server (Recommended)
 
-```javascript
-const express = require('express');
-const app = express();
-app.use(express.json());
+The repository provides a complete, production-ready **AnchorPQ Verification Server** built with Quarkus. To run it:
 
-// Store expected Merkle roots per version
-const expectedRoots = {
-  '1.0.0': {
-    'debug': '45e2f3b4eab4253af3de4887a435b71cb6694f9d0b07026e23c9fdfda50afaa1',
-    'release': 'abc123def456...'
-  }
-};
+```bash
+# Start the server and PostgreSQL database using Docker Compose
+docker-compose up --build
 
-app.post('/api/verify', (req, res) => {
-  const { merkle_root, version, variant, package_name } = req.body;
-  
-  const expected = expectedRoots[version]?.[variant];
-  
-  if (!expected) {
-    return res.json({
-      verified: false,
-      message: `Unknown version/variant: ${version}/${variant}`
-    });
-  }
-  
-  const verified = merkle_root === expected;
-  
-  res.json({
-    verified,
-    message: verified 
-      ? 'Integrity verified successfully'
-      : 'Application has been tampered with!',
-    expected_root: expected
-  });
-});
-
-app.listen(8080, () => {
-  console.log('Integrity verification server running on port 8080');
-});
+# Or run using Maven (requires PostgreSQL running on localhost:5432)
+cd anchorpq-server
+./mvnw compile quarkus:dev
 ```
+
+See [Server Configuration](#-verification-server) below for more details.
+
+
 
 ---
 
