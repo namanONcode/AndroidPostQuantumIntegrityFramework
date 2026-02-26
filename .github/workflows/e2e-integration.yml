@@ -91,86 +91,26 @@ jobs:
               "description": "Demo app debug build - CI test"
             }'
 
-      # ----------------------------
-      # AVD Cache (fast boot)
-      # ----------------------------
-      - name: AVD cache
-        uses: actions/cache@v4
-        id: avd-cache
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-api33-google_apis-x86_64
-
-      # ----------------------------
-      # Create snapshot if needed
-      # ----------------------------
-      - name: Create AVD snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          target: google_apis
-          arch: x86_64
-          profile: Nexus 6
-          disable-animations: true
-          emulator-options: >
-            -no-window
-            -noaudio
-            -no-boot-anim
-            -gpu swiftshader_indirect
-            -camera-back none
-            -no-metrics
-          script: echo "AVD snapshot created"
-
-      # ----------------------------
-      # Run Instrumentation Tests
-      # ----------------------------
       - name: Run Android Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: google_apis
+          target: aosp_atd
           arch: x86_64
           profile: Nexus 6
+          force-avd-creation: true
           disable-animations: true
           emulator-options: >
             -no-window
+            -no-snapshot
             -noaudio
             -no-boot-anim
             -gpu swiftshader_indirect
             -camera-back none
             -no-metrics
           script: |
-            echo "Waiting for device..."
-            adb wait-for-device
-
-            echo "Waiting for full boot..."
-            until adb shell getprop sys.boot_completed | grep -m 1 "1"; do
-              sleep 2
-            done
-
-            echo "Disabling animations..."
-            adb shell settings put global window_animation_scale 0
-            adb shell settings put global transition_animation_scale 0
-            adb shell settings put global animator_duration_scale 0
-
-            echo "Unlocking device..."
             adb shell input keyevent 82
-            adb shell wm dismiss-keyguard
-
-            sleep 5
-
-            echo "Running instrumentation tests..."
             ./gradlew -p anchorpq-demo-app :app:connectedCheck --build-cache --stacktrace
-
-      # ----------------------------
-      # Dump logs on failure
-      # ----------------------------
-      - name: Dump logcat on failure
-        if: failure()
-        run: adb logcat -d | tail -300
 
       # ----------------------------
       # Upload reports
