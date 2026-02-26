@@ -1,4 +1,5 @@
 name: AnchorPQ E2E Integration
+
 on:
   push:
     branches: ["main", "master"]
@@ -21,12 +22,19 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
+
     steps:
+      # ----------------------------
+      # Checkout
+      # ----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
+      # ----------------------------
+      # Java Setup (Gradle cache only)
+      # ----------------------------
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -34,29 +42,43 @@ jobs:
           java-version: 17
           cache: gradle
 
+      # ----------------------------
+      # Permissions
+      # ----------------------------
       - name: Grant execute permissions
         run: |
           chmod +x gradlew
-          chmod +x anchorpq-demo-app/gradlew
-          chmod +x scripts/*.sh
-      
+          chmod +x anchorpq-demo-app/gradlew || true
+          chmod +x scripts/*.sh || true
+
+      # ----------------------------
+      # Backend Integration Tests
+      # ----------------------------
       - name: Run Backend E2E Integration
         run: ./scripts/e2e-integration-test.sh
         env:
           MAVEN_PROJECTBASEDIR: ${{ github.workspace }}/anchorpq-server
-      
+
+      # ----------------------------
+      # Android Unit Tests
+      # ----------------------------
       - name: Run Android Unit Tests
         run: ./gradlew -p anchorpq-demo-app :app:testDebugUnitTest --build-cache
-      
+
+      # ----------------------------
+      # Start Backend (Docker)
+      # ----------------------------
       - name: Start Backend Server
         run: |
           docker compose up -d --build postgres anchorpq-server
+
           echo "Waiting for backend..."
           timeout 120s bash -c '
             until curl -sf http://localhost:8080/public-key > /dev/null 2>&1; do
               sleep 3
             done
           '
+
           echo "Seeding database..."
           curl -sf \
             -X POST "http://localhost:8080/admin/records" \
@@ -69,6 +91,9 @@ jobs:
               "description": "Demo app debug build - CI test"
             }'
 
+      # ----------------------------
+      # AVD Cache (fast boot)
+      # ----------------------------
       - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
@@ -76,17 +101,19 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-api33-aosp_atd-x86_64
+          key: avd-api33-google_apis-x86_64
 
+      # ----------------------------
+      # Create snapshot if needed
+      # ----------------------------
       - name: Create AVD snapshot
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: aosp_atd
+          target: google_apis
           arch: x86_64
           profile: Nexus 6
-          force-avd-creation: false
           disable-animations: true
           emulator-options: >
             -no-window
@@ -95,16 +122,18 @@ jobs:
             -gpu swiftshader_indirect
             -camera-back none
             -no-metrics
-          script: echo "AVD booted and snapshot saved"
+          script: echo "AVD snapshot created"
 
+      # ----------------------------
+      # Run Instrumentation Tests
+      # ----------------------------
       - name: Run Android Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: aosp_atd
+          target: google_apis
           arch: x86_64
           profile: Nexus 6
-          force-avd-creation: false
           disable-animations: true
           emulator-options: >
             -no-window
@@ -114,9 +143,38 @@ jobs:
             -camera-back none
             -no-metrics
           script: |
+            echo "Waiting for device..."
+            adb wait-for-device
+
+            echo "Waiting for full boot..."
+            until adb shell getprop sys.boot_completed | grep -m 1 "1"; do
+              sleep 2
+            done
+
+            echo "Disabling animations..."
+            adb shell settings put global window_animation_scale 0
+            adb shell settings put global transition_animation_scale 0
+            adb shell settings put global animator_duration_scale 0
+
+            echo "Unlocking device..."
             adb shell input keyevent 82
+            adb shell wm dismiss-keyguard
+
+            sleep 5
+
+            echo "Running instrumentation tests..."
             ./gradlew -p anchorpq-demo-app :app:connectedCheck --build-cache --stacktrace
-            
+
+      # ----------------------------
+      # Dump logs on failure
+      # ----------------------------
+      - name: Dump logcat on failure
+        if: failure()
+        run: adb logcat -d | tail -300
+
+      # ----------------------------
+      # Upload reports
+      # ----------------------------
       - name: Upload Test Reports
         if: always()
         uses: actions/upload-artifact@v4
