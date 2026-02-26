@@ -4,6 +4,17 @@ on:
     branches: ["main", "master"]
   pull_request:
     branches: ["main", "master"]
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: >-
+    -Dorg.gradle.parallel=true
+    -Dorg.gradle.caching=true
+    -Dorg.gradle.daemon=false
+
 jobs:
   e2e-test:
     runs-on: ubuntu-latest
@@ -11,59 +22,48 @@ jobs:
     permissions:
       contents: read
     steps:
-      # ----------------------------
-      # Checkout
-      # ----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      # ----------------------------
-      # Java Setup (with Gradle cache)
-      # ----------------------------
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: gradle
-      
-      # ----------------------------
-      # Maven Cache
-      # ----------------------------
+
       - name: Cache Maven repository
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('anchorpq-server/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      
-      # ----------------------------
-      # Permissions
-      # ----------------------------
+
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/sdk
+            ${{ env.ANDROID_HOME }}
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-
+
       - name: Grant execute permissions
         run: |
           chmod +x gradlew
           chmod +x anchorpq-demo-app/gradlew
           chmod +x scripts/*.sh
       
-      # ----------------------------
-      # Backend E2E
-      # ----------------------------
       - name: Run Backend E2E Integration
         run: ./scripts/e2e-integration-test.sh
         env:
           MAVEN_PROJECTBASEDIR: ${{ github.workspace }}/anchorpq-server
       
-      # ----------------------------
-      # Android Unit Tests
-      # ----------------------------
       - name: Run Android Unit Tests
-        run: ./gradlew -p anchorpq-demo-app :app:testDebugUnitTest
+        run: ./gradlew -p anchorpq-demo-app :app:testDebugUnitTest --build-cache
       
-      # ----------------------------
-      # Start Backend for Instrumentation
-      # ----------------------------
       - name: Start Backend Server
         run: |
           docker compose up -d --build postgres anchorpq-server
@@ -85,14 +85,11 @@ jobs:
               "description": "Demo app debug build - CI test"
             }'
             
-      # ----------------------------
-      # Instrumentation Tests
-      # ----------------------------
       - name: Run Android Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: aosp_atd       # The key to running Modern Android on Linux CI!
+          target: aosp_atd
           arch: x86_64
           profile: Nexus 6
           force-avd-creation: true
@@ -110,11 +107,8 @@ jobs:
             adb shell input keyevent 82
             
             echo "Running instrumentation tests..."
-            ./gradlew -p anchorpq-demo-app :app:connectedCheck --stacktrace
+            ./gradlew -p anchorpq-demo-app :app:connectedCheck --build-cache --stacktrace
             
-      # ----------------------------
-      # Upload Test Reports
-      # ----------------------------
       - name: Upload Test Reports
         if: always()
         uses: actions/upload-artifact@v4

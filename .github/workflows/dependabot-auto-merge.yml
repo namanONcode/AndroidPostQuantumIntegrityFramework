@@ -28,7 +28,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build and Test
-        run: ./gradlew build test
+        run: ./gradlew build test --build-cache
 
       - name: Dependabot metadata
         id: metadata

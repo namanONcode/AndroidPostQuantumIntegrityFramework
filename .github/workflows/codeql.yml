@@ -8,10 +8,11 @@ on:
   schedule:
     - cron: '35 12 * * 4'
 
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # ============================================================================
-  # CodeQL Analysis - Gradle Plugin
-  # ============================================================================
   analyze-plugin:
     name: Analyze Plugin (${{ matrix.language }})
     runs-on: ubuntu-latest
@@ -48,16 +49,13 @@ jobs:
     - name: Build Plugin with Gradle
       run: |
         chmod +x gradlew
-        ./gradlew build -x test --no-daemon
+        ./gradlew build -x test --build-cache --no-daemon
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}/project:plugin"
 
-  # ============================================================================
-  # CodeQL Analysis - Quarkus Server
-  # ============================================================================
   analyze-server:
     name: Analyze Server (${{ matrix.language }})
     runs-on: ubuntu-latest
@@ -93,16 +91,13 @@ jobs:
 
     - name: Build Server with Maven
       working-directory: anchorpq-server
-      run: mvn -B compile -DskipTests
+      run: mvn -B -T 1C compile -DskipTests
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}/project:server"
 
-  # ============================================================================
-  # CodeQL Analysis - Android Demo App
-  # ============================================================================
   analyze-demo-app:
     name: Analyze Demo App (${{ matrix.language }})
     runs-on: ubuntu-latest
@@ -130,6 +125,16 @@ jobs:
         distribution: 'temurin'
         cache: 'gradle'
 
+    - name: Cache Android SDK
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.android/sdk
+          ${{ env.ANDROID_HOME }}
+        key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
+        restore-keys: |
+          ${{ runner.os }}-android-sdk-
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
@@ -140,16 +145,13 @@ jobs:
       working-directory: anchorpq-demo-app
       run: |
         chmod +x gradlew
-        ./gradlew assembleDebug -x test --no-daemon
+        ./gradlew assembleDebug -x test --build-cache --no-daemon
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}/project:demo-app"
 
-  # ============================================================================
-  # CodeQL Analysis - GitHub Actions
-  # ============================================================================
   analyze-actions:
     name: Analyze GitHub Actions
     runs-on: ubuntu-latest

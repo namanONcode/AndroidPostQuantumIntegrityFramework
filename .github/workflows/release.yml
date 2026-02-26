@@ -34,10 +34,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build plugin
-        run: ./gradlew build
+        run: ./gradlew build --build-cache
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --build-cache
 
       - name: Get version
         id: get_version

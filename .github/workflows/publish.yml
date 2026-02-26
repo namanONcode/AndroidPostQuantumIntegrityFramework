@@ -32,10 +32,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --build-cache
 
       - name: Build plugin
-        run: ./gradlew build
+        run: ./gradlew build --build-cache
 
       - name: Publish to Gradle Plugin Portal
         env:

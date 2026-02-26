@@ -43,7 +43,7 @@ jobs:
 
       - name: Build with Maven
         working-directory: anchorpq-server
-        run: mvn -B package -DskipTests
+        run: mvn -B -T 1C package -DskipTests
 
       - name: Run tests
         working-directory: anchorpq-server

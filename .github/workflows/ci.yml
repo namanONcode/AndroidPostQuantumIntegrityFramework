@@ -9,10 +9,17 @@ on:
   pull_request:
     branches: [ master, main ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GRADLE_OPTS: >-
+    -Dorg.gradle.parallel=true
+    -Dorg.gradle.caching=true
+    -Dorg.gradle.daemon=false
+
 jobs:
-  # ============================================================================
-  # Gradle Plugin Build & Test
-  # ============================================================================
   plugin-build:
     name: Plugin - Build & Test
     runs-on: ubuntu-latest
@@ -36,12 +43,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
+        run: ./gradlew build --build-cache
 
       - name: Run tests
-        run: ./gradlew test jacocoTestReport
+        run: ./gradlew test jacocoTestReport --build-cache
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
@@ -83,15 +88,12 @@ jobs:
         run: chmod +x gradlew
 
       - name: Check code formatting
-        run: ./gradlew spotlessCheck
+        run: ./gradlew spotlessCheck --build-cache
         continue-on-error: true
 
       - name: Validate plugin
-        run: ./gradlew validatePlugins
+        run: ./gradlew validatePlugins --build-cache
 
-  # ============================================================================
-  # Quarkus Server Build & Test
-  # ============================================================================
   server-build:
     name: Server - Build & Test
     runs-on: ubuntu-latest
@@ -115,7 +117,7 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        run: mvn -B compile -DskipTests
+        run: mvn -B -T 1C compile -DskipTests
 
       - name: Run tests
         run: mvn -B test
@@ -155,9 +157,6 @@ jobs:
         run: mvn -B spotless:check
         continue-on-error: true
 
-  # ============================================================================
-  # Docker Build Test
-  # ============================================================================
   server-docker:
     name: Server - Docker Build
     runs-on: ubuntu-latest
@@ -180,9 +179,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ============================================================================
-  # Demo App Build & Test
-  # ============================================================================
   demo-app-build:
     name: Demo App - Build
     runs-on: ubuntu-latest
@@ -199,31 +195,40 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/sdk
+            ${{ env.ANDROID_HOME }}
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-
+
       - name: Grant execute permissions
         run: |
           chmod +x gradlew
           chmod +x anchorpq-demo-app/gradlew 2>/dev/null || true
 
       - name: Build and publish plugin locally
-        run: ./gradlew publishToMavenLocal -x test
+        run: ./gradlew publishToMavenLocal -x test --build-cache
 
       - name: Build demo app
         working-directory: anchorpq-demo-app
         run: |
-          # Use wrapper from root if demo doesn't have one
           if [ -f gradlew ]; then
-            ./gradlew assembleDebug --info
+            ./gradlew assembleDebug --build-cache --info
           else
-            ../gradlew -p . assembleDebug --info
+            ../gradlew -p . assembleDebug --build-cache --info
           fi
 
       - name: Run demo app unit tests
         working-directory: anchorpq-demo-app
         run: |
           if [ -f gradlew ]; then
-            ./gradlew testDebugUnitTest || true
+            ./gradlew testDebugUnitTest --build-cache || true
           else
-            ../gradlew -p . testDebugUnitTest || true
+            ../gradlew -p . testDebugUnitTest --build-cache || true
           fi
         continue-on-error: true
 
@@ -252,9 +257,6 @@ jobs:
           name: demo-app-merkle-root
           path: anchorpq-demo-app/app/build/anchorpq/debug/
 
-  # ============================================================================
-  # Merkle Root Determinism Test
-  # ============================================================================
   merkle-determinism:
     name: Test - Merkle Determinism
     runs-on: ubuntu-latest
@@ -271,16 +273,26 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/sdk
+            ${{ env.ANDROID_HOME }}
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-
+
       - name: Grant execute permissions
         run: chmod +x gradlew
 
       - name: Build plugin locally
-        run: ./gradlew publishToMavenLocal -x test
+        run: ./gradlew publishToMavenLocal -x test --build-cache
 
       - name: First build - get Merkle root
         working-directory: anchorpq-demo-app
         run: |
-          ../gradlew -p . clean assembleDebug --quiet
+          ../gradlew -p . clean assembleDebug --build-cache --quiet
           FIRST_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "FIRST_FAILED")
           echo "FIRST_ROOT=$FIRST_ROOT" >> $GITHUB_ENV
           echo "First Merkle root: $FIRST_ROOT"
@@ -288,22 +300,19 @@ jobs:
       - name: Second build - verify determinism
         working-directory: anchorpq-demo-app
         run: |
-          ../gradlew -p . clean assembleDebug --quiet
+          ../gradlew -p . clean assembleDebug --build-cache --quiet
           SECOND_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "SECOND_FAILED")
           echo "Second Merkle root: $SECOND_ROOT"
           
           if [ "$FIRST_ROOT" = "$SECOND_ROOT" ]; then
-            echo "✅ Merkle root is deterministic!"
+            echo "Merkle root is deterministic!"
           else
-            echo "❌ Merkle root changed between builds!"
+            echo "Merkle root changed between builds!"
             echo "First:  $FIRST_ROOT"
             echo "Second: $SECOND_ROOT"
             exit 1
           fi
 
-  # ============================================================================
-  # End-to-End Integration Test
-  # ============================================================================
   e2e-integration:
     name: Test - E2E Integration
     runs-on: ubuntu-latest
@@ -335,16 +344,34 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Cache Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('anchorpq-server/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/sdk
+            ${{ env.ANDROID_HOME }}
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-
+
       - name: Grant execute permissions
         run: chmod +x gradlew
 
       - name: Build plugin locally
-        run: ./gradlew publishToMavenLocal -x test
+        run: ./gradlew publishToMavenLocal -x test --build-cache
 
       - name: Build demo app and extract Merkle root
         working-directory: anchorpq-demo-app
         run: |
-          ../gradlew -p . assembleDebug --quiet
+          ../gradlew -p . assembleDebug --build-cache --quiet
           MERKLE_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "DEMO_PLACEHOLDER")
           echo "MERKLE_ROOT=$MERKLE_ROOT" >> $GITHUB_ENV
           echo "Demo app Merkle root: $MERKLE_ROOT"
@@ -352,15 +379,12 @@ jobs:
       - name: Build and start server
         working-directory: anchorpq-server
         run: |
-          # Build server JAR (production mode uses PostgreSQL config from application.properties)
-          mvn -B package -DskipTests
+          mvn -B -T 1C package -DskipTests
           
-          # Run server with correct database credentials
           java -Dquarkus.datasource.username=anchorpq \
             -Dquarkus.datasource.password=anchorpq_secret \
             -jar target/quarkus-app/quarkus-run.jar &
           
-          # Wait for server with extended timeout
           echo "Waiting for server..."
           for i in {1..60}; do
             if curl -sf http://localhost:8080/health/ready > /dev/null 2>&1; then
@@ -374,15 +398,15 @@ jobs:
       - name: Test public key endpoint
         run: |
           RESPONSE=$(curl -sf --retry 5 --retry-delay 3 --retry-connrefused http://localhost:8080/public-key) || {
-            echo "❌ Public key endpoint failed (curl error $?)"
+            echo "Public key endpoint failed (curl error $?)"
             exit 1
           }
           echo "Public key response: $RESPONSE"
           
           if echo "$RESPONSE" | grep -q "publicKey"; then
-            echo "✅ Public key endpoint working"
+            echo "Public key endpoint working"
           else
-            echo "❌ Public key endpoint returned unexpected response"
+            echo "Public key endpoint returned unexpected response"
             exit 1
           fi
 
@@ -404,4 +428,3 @@ jobs:
         working-directory: anchorpq-server
         run: mvn -B test -Dtest=*IntegrationTest -DfailIfNoTests=false
         continue-on-error: true
-
