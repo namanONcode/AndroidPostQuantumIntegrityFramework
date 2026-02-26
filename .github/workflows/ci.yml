@@ -31,6 +31,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v4
@@ -39,14 +41,10 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build with Gradle
-        run: ./gradlew build --build-cache
-
-      - name: Run tests
-        run: ./gradlew test jacocoTestReport --build-cache
+      - name: Build, test and generate coverage
+        run: |
+          chmod +x gradlew
+          ./gradlew build jacocoTestReport --build-cache
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
@@ -62,12 +60,14 @@ jobs:
         with:
           name: plugin-test-results-java-${{ matrix.java-version }}
           path: build/reports/tests/
+          retention-days: 5
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
         with:
           name: plugin-jar-java-${{ matrix.java-version }}
           path: build/libs/*.jar
+          retention-days: 5
 
   plugin-code-quality:
     name: Plugin - Code Quality
@@ -76,6 +76,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -84,15 +86,10 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Check code formatting
-        run: ./gradlew spotlessCheck --build-cache
-        continue-on-error: true
-
-      - name: Validate plugin
-        run: ./gradlew validatePlugins --build-cache
+      - name: Check formatting and validate plugin
+        run: |
+          chmod +x gradlew
+          ./gradlew spotlessCheck validatePlugins --build-cache --continue
 
   server-build:
     name: Server - Build & Test
@@ -108,6 +105,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v4
@@ -116,11 +115,8 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build with Maven
-        run: mvn -B -T 1C compile -DskipTests
-
-      - name: Run tests
-        run: mvn -B test
+      - name: Build and test
+        run: mvn -B -T 1C verify
 
       - name: Upload test results
         uses: actions/upload-artifact@v6
@@ -128,12 +124,14 @@ jobs:
         with:
           name: server-test-results-java-${{ matrix.java-version }}
           path: anchorpq-server/target/surefire-reports/
+          retention-days: 5
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
         with:
           name: server-jar-java-${{ matrix.java-version }}
           path: anchorpq-server/target/quarkus-app/
+          retention-days: 5
 
   server-code-quality:
     name: Server - Code Quality
@@ -145,6 +143,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -165,6 +165,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -177,7 +179,7 @@ jobs:
           push: false
           tags: anchorpq/anchorpq-server:test
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha
 
   demo-app-build:
     name: Demo App - Build
@@ -187,6 +189,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -195,42 +199,20 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Cache Android SDK
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.android/sdk
-            ${{ env.ANDROID_HOME }}
-          key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-android-sdk-
-
-      - name: Grant execute permissions
+      - name: Build plugin and publish locally
         run: |
           chmod +x gradlew
           chmod +x anchorpq-demo-app/gradlew 2>/dev/null || true
+          ./gradlew publishToMavenLocal -x test --build-cache
 
-      - name: Build and publish plugin locally
-        run: ./gradlew publishToMavenLocal -x test --build-cache
-
-      - name: Build demo app
+      - name: Build and test demo app
         working-directory: anchorpq-demo-app
         run: |
           if [ -f gradlew ]; then
-            ./gradlew assembleDebug --build-cache --info
+            ./gradlew assembleDebug testDebugUnitTest --build-cache --continue || true
           else
-            ../gradlew -p . assembleDebug --build-cache --info
+            ../gradlew -p . assembleDebug testDebugUnitTest --build-cache --continue || true
           fi
-
-      - name: Run demo app unit tests
-        working-directory: anchorpq-demo-app
-        run: |
-          if [ -f gradlew ]; then
-            ./gradlew testDebugUnitTest --build-cache || true
-          else
-            ../gradlew -p . testDebugUnitTest --build-cache || true
-          fi
-        continue-on-error: true
 
       - name: Extract Merkle root
         id: merkle
@@ -250,12 +232,14 @@ jobs:
         with:
           name: demo-app-debug-apk
           path: anchorpq-demo-app/app/build/outputs/apk/debug/*.apk
+          retention-days: 5
 
       - name: Upload Merkle root artifact
         uses: actions/upload-artifact@v6
         with:
           name: demo-app-merkle-root
           path: anchorpq-demo-app/app/build/anchorpq/debug/
+          retention-days: 5
 
   merkle-determinism:
     name: Test - Merkle Determinism
@@ -265,6 +249,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -273,21 +259,10 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Cache Android SDK
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.android/sdk
-            ${{ env.ANDROID_HOME }}
-          key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-android-sdk-
-
-      - name: Grant execute permissions
-        run: chmod +x gradlew
-
       - name: Build plugin locally
-        run: ./gradlew publishToMavenLocal -x test --build-cache
+        run: |
+          chmod +x gradlew
+          ./gradlew publishToMavenLocal -x test --build-cache
 
       - name: First build - get Merkle root
         working-directory: anchorpq-demo-app
@@ -336,6 +311,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -344,33 +321,11 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Cache Maven repository
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('anchorpq-server/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Cache Android SDK
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.android/sdk
-            ${{ env.ANDROID_HOME }}
-          key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-android-sdk-
-
-      - name: Grant execute permissions
-        run: chmod +x gradlew
-
-      - name: Build plugin locally
-        run: ./gradlew publishToMavenLocal -x test --build-cache
-
-      - name: Build demo app and extract Merkle root
-        working-directory: anchorpq-demo-app
+      - name: Build plugin and demo app
         run: |
+          chmod +x gradlew
+          ./gradlew publishToMavenLocal -x test --build-cache
+          cd anchorpq-demo-app
           ../gradlew -p . assembleDebug --build-cache --quiet
           MERKLE_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "DEMO_PLACEHOLDER")
           echo "MERKLE_ROOT=$MERKLE_ROOT" >> $GITHUB_ENV

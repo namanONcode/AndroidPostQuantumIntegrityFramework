@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -31,24 +33,6 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: gradle
-
-      - name: Cache Maven repository
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('anchorpq-server/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Cache Android SDK
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.android/sdk
-            ${{ env.ANDROID_HOME }}
-          key: ${{ runner.os }}-android-sdk-${{ hashFiles('anchorpq-demo-app/app/build.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-android-sdk-
 
       - name: Grant execute permissions
         run: |
@@ -84,7 +68,35 @@ jobs:
               "signerFingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
               "description": "Demo app debug build - CI test"
             }'
-            
+
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-api33-aosp_atd-x86_64
+
+      - name: Create AVD snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: aosp_atd
+          arch: x86_64
+          profile: Nexus 6
+          force-avd-creation: false
+          disable-animations: true
+          emulator-options: >
+            -no-window
+            -noaudio
+            -no-boot-anim
+            -gpu swiftshader_indirect
+            -camera-back none
+            -no-metrics
+          script: echo "AVD booted and snapshot saved"
+
       - name: Run Android Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -92,21 +104,17 @@ jobs:
           target: aosp_atd
           arch: x86_64
           profile: Nexus 6
-          force-avd-creation: true
+          force-avd-creation: false
           disable-animations: true
           emulator-options: >
             -no-window
-            -no-snapshot
             -noaudio
             -no-boot-anim
             -gpu swiftshader_indirect
             -camera-back none
             -no-metrics
           script: |
-            echo "Unlocking device..."
             adb shell input keyevent 82
-            
-            echo "Running instrumentation tests..."
             ./gradlew -p anchorpq-demo-app :app:connectedCheck --build-cache --stacktrace
             
       - name: Upload Test Reports
@@ -114,6 +122,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
+          retention-days: 5
           path: |
             **/build/reports/tests/
             **/build/reports/androidTests/
