@@ -46,10 +46,16 @@ updates:
       prefix: "deps(demo)"
       include: "scope"
     groups:
-      androidx:
+      android-sdk:
         patterns:
+          - "com.android.application"
+          - "com.android.tools.build:*"
           - "androidx.*"
           - "com.google.android.material:*"
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "org.jetbrains.kotlinx:*"
       networking:
         patterns:
           - "com.squareup.retrofit2:*"
