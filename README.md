@@ -1,5 +1,7 @@
 # 🛡️ AnchorPQ - Android Post-Quantum Integrity Framework
 
+<a href="https://www.producthunt.com/products/anchor-pq-gradle-plugin?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-anchor-pq-gradle-plugin" target="_blank" rel="noopener noreferrer"><img alt="Anchor-pq Gradle Plugin - Android Post-Quantum Integrity Framework | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1088480&amp;theme=dark&amp;t=1772459318315"></a>
+
 [![CI Build](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/ci.yml/badge.svg)](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/codeql.yml/badge.svg)](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
