@@ -30,13 +30,27 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION=${GITHUB_REF_NAME#v}
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            echo "No version provided"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
       - name: Build and test
         run: |
           chmod +x gradlew
-          ./gradlew build --build-cache
+          ./gradlew build --build-cache -Pversion=${{ steps.version.outputs.version }}
 
       - name: Publish to Gradle Plugin Portal
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-        run: ./gradlew publishPlugins -Pgradle.publish.key=$GRADLE_PUBLISH_KEY -Pgradle.publish.secret=$GRADLE_PUBLISH_SECRET
+        run: ./gradlew publishPlugins -Pversion=${{ steps.version.outputs.version }} -Pgradle.publish.key=$GRADLE_PUBLISH_KEY -Pgradle.publish.secret=$GRADLE_PUBLISH_SECRET
