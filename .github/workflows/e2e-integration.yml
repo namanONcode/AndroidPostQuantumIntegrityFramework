@@ -63,7 +63,8 @@ jobs:
       # Android Unit Tests
       # ----------------------------
       - name: Run Android Unit Tests
-        run: ./gradlew -p anchorpq-demo-app :app:testDebugUnitTest --build-cache
+        working-directory: anchorpq-demo-app
+        run: ./gradlew :app:testDebugUnitTest --build-cache
 
       # ----------------------------
       # Start Backend (Docker)
@@ -110,7 +111,7 @@ jobs:
             -no-metrics
           script: |
             adb shell input keyevent 82
-            ./gradlew -p anchorpq-demo-app :app:connectedCheck --build-cache --stacktrace
+            cd anchorpq-demo-app && ./gradlew :app:connectedCheck --build-cache --stacktrace
 
       # ----------------------------
       # Upload reports
