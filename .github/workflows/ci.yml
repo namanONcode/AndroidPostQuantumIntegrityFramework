@@ -208,11 +208,8 @@ jobs:
       - name: Build and test demo app
         working-directory: anchorpq-demo-app
         run: |
-          if [ -f gradlew ]; then
-            ./gradlew assembleDebug testDebugUnitTest --build-cache --continue || true
-          else
-            ../gradlew -p . assembleDebug testDebugUnitTest --build-cache --continue || true
-          fi
+          chmod +x gradlew
+          ./gradlew assembleDebug testDebugUnitTest --build-cache --continue || true
 
       - name: Extract Merkle root
         id: merkle
@@ -267,7 +264,8 @@ jobs:
       - name: First build - get Merkle root
         working-directory: anchorpq-demo-app
         run: |
-          ../gradlew -p . clean assembleDebug --build-cache --quiet
+          chmod +x gradlew
+          ./gradlew clean assembleDebug --build-cache --quiet
           FIRST_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "FIRST_FAILED")
           echo "FIRST_ROOT=$FIRST_ROOT" >> $GITHUB_ENV
           echo "First Merkle root: $FIRST_ROOT"
@@ -275,7 +273,7 @@ jobs:
       - name: Second build - verify determinism
         working-directory: anchorpq-demo-app
         run: |
-          ../gradlew -p . clean assembleDebug --build-cache --quiet
+          ./gradlew clean assembleDebug --build-cache --quiet
           SECOND_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "SECOND_FAILED")
           echo "Second Merkle root: $SECOND_ROOT"
           
@@ -326,7 +324,8 @@ jobs:
           chmod +x gradlew
           ./gradlew publishToMavenLocal -x test --build-cache
           cd anchorpq-demo-app
-          ../gradlew -p . assembleDebug --build-cache --quiet
+          chmod +x gradlew
+          ./gradlew assembleDebug --build-cache --quiet
           MERKLE_ROOT=$(cat app/build/anchorpq/debug/merkle-root.txt 2>/dev/null || echo "DEMO_PLACEHOLDER")
           echo "MERKLE_ROOT=$MERKLE_ROOT" >> $GITHUB_ENV
           echo "Demo app Merkle root: $MERKLE_ROOT"
