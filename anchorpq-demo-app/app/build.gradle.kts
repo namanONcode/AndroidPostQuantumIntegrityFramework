@@ -55,9 +55,6 @@ android {
             excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
         }
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
 }
 
 // AnchorPQ Plugin Configuration
