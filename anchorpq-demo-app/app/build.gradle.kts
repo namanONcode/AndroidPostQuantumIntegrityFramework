@@ -1,7 +1,5 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    // AnchorPQ Integrity Plugin
     id("io.github.namanoncode.anchorpq")
 }
 
@@ -57,11 +55,8 @@ android {
             excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
         }
     }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
 

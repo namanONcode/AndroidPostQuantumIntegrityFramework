@@ -1,7 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("com.android.application") version "9.1.0" apply false
-    id("org.jetbrains.kotlin.android") version "2.3.10" apply false
+    id("com.android.application") version "8.9.1" apply false
     id("com.diffplug.spotless") version "8.2.1"
     // AnchorPQ plugin will be applied at app module level
 }
@@ -14,8 +13,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:9.1.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.10")
+        classpath("com.android.tools.build:gradle:8.9.1")
     }
 }
 
