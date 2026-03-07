@@ -2,7 +2,10 @@ package com.anchorpq.demo
 
 import com.anchorpq.demo.crypto.MLKemClient
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.security.KeyPairGenerator
@@ -13,7 +16,6 @@ import java.security.Security
  * Tests encapsulation and encryption without server interaction.
  */
 class MLKemClientTest {
-
     private lateinit var mlKemClient: MLKemClient
 
     @Before
@@ -115,4 +117,3 @@ class MLKemClientTest {
         assertFalse(ciphertext1.contentEquals(ciphertext2))
     }
 }
-

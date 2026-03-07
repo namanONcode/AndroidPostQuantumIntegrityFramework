@@ -12,7 +12,6 @@ import retrofit2.http.POST
  * Retrofit API interface for AnchorPQ server endpoints.
  */
 interface AnchorPQApi {
-
     /**
      * Fetches the server's ML-KEM public key.
      * The public key is used for key encapsulation.
@@ -29,6 +28,7 @@ interface AnchorPQApi {
      * @return Verification response with status (APPROVED/RESTRICTED/REJECTED)
      */
     @POST("/verify")
-    suspend fun verify(@Body request: VerificationRequest): Response<VerificationResponse>
+    suspend fun verify(
+        @Body request: VerificationRequest,
+    ): Response<VerificationResponse>
 }
-

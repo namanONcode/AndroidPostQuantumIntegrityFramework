@@ -1,20 +1,13 @@
 package com.anchorpq.demo
 
-import com.anchorpq.demo.model.VerificationResponse
-import com.anchorpq.demo.model.VerificationStatus
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.anchorpq.demo.ui.MainViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-/**
- * Unit tests for MainViewModel.
- */
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import org.junit.Rule
-
 class MainViewModelTest {
-
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
@@ -36,4 +29,3 @@ class MainViewModelTest {
         assertEquals(MainViewModel.UiState.Idle, viewModel.uiState.value)
     }
 }
-

@@ -3,7 +3,7 @@
 **Post-Quantum Secure Android Integrity Verification Demo**
 
 [![Android](https://img.shields.io/badge/Android-24%2B-green.svg)](https://developer.android.com/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9-blue.svg)](https://kotlinlang.org/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-Built--in%20AGP%209.0-blue.svg)](https://kotlinlang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Overview
@@ -90,8 +90,9 @@ This Android application demonstrates the complete AnchorPQ integrity verificati
 
 ### Prerequisites
 
-- Android Studio Hedgehog (2023.1.1) or later
-- JDK 17
+- Android Studio Ladybug (2024.2.1) or later
+- JDK 17 (Eclipse Temurin recommended)
+- Gradle 9.3.1+
 - Docker and Docker Compose (for server)
 - AnchorPQ Gradle Plugin (published to Maven Local)
 
@@ -187,7 +188,6 @@ The demo app uses the AnchorPQ Gradle plugin:
 // app/build.gradle.kts
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("io.github.namanoncode.anchorpq")  // AnchorPQ plugin
 }
 
@@ -224,11 +224,11 @@ anchorpq {
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
-| Bouncy Castle | 1.78.1 | ML-KEM cryptography |
-| Retrofit | 2.9.0 | HTTP client |
+| Bouncy Castle | 1.83 | ML-KEM cryptography |
+| Retrofit | 2.11.0 | HTTP client |
 | OkHttp | 4.12.0 | Network layer |
-| Gson | 2.10.1 | JSON serialization |
-| Kotlin Coroutines | 1.7.3 | Async operations |
+| Gson | 2.13.2 | JSON serialization |
+| Kotlin Coroutines | 1.10.2 | Async operations |
 
 ## Testing
 

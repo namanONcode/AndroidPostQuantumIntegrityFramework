@@ -53,8 +53,7 @@ public abstract class GenerateMerkleTask extends DefaultTask {
   public abstract Property<String> getAlgorithm();
 
   /** Directory containing compiled .class files. */
-  @InputDirectory
-  @Optional
+  @Internal
   public abstract DirectoryProperty getClassesDirectory();
 
   /** Output directory for the Merkle root file. */

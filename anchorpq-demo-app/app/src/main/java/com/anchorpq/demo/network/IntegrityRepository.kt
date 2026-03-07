@@ -4,7 +4,6 @@ import android.util.Base64
 import android.util.Log
 import com.anchorpq.demo.crypto.IntegrityEncryptionService
 import com.anchorpq.demo.model.VerificationResponse
-import com.anchorpq.demo.model.VerificationStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -15,7 +14,6 @@ import kotlinx.coroutines.withContext
  * 3. Send request and receive response
  */
 class IntegrityRepository(private val serverUrl: String) {
-
     companion object {
         private const val TAG = "IntegrityRepository"
     }
@@ -28,6 +26,7 @@ class IntegrityRepository(private val serverUrl: String) {
      */
     sealed class VerificationResult {
         data class Success(val response: VerificationResponse) : VerificationResult()
+
         data class Error(val message: String, val cause: Throwable? = null) : VerificationResult()
     }
 
@@ -46,7 +45,7 @@ class IntegrityRepository(private val serverUrl: String) {
         ENCRYPTING_PAYLOAD,
         SENDING_REQUEST,
         PROCESSING_RESPONSE,
-        COMPLETE
+        COMPLETE,
     }
 
     /**
@@ -62,84 +61,92 @@ class IntegrityRepository(private val serverUrl: String) {
         merkleRoot: String,
         version: String,
         variant: String,
-        progressCallback: ProgressCallback? = null
-    ): VerificationResult = withContext(Dispatchers.IO) {
-        try {
-            // Step 1: Fetch server's public key
-            Log.d(TAG, "Step 1: Fetching server public key from $serverUrl")
-            progressCallback?.onProgress(VerificationStep.FETCHING_PUBLIC_KEY)
+        progressCallback: ProgressCallback? = null,
+    ): VerificationResult =
+        withContext(Dispatchers.IO) {
+            try {
+                // Step 1: Fetch server's public key
+                Log.d(TAG, "Step 1: Fetching server public key from $serverUrl")
+                progressCallback?.onProgress(VerificationStep.FETCHING_PUBLIC_KEY)
 
-            val publicKeyResponse = api.getPublicKey()
-            if (!publicKeyResponse.isSuccessful) {
-                val errorBody = publicKeyResponse.errorBody()?.string() ?: "Unknown error"
-                Log.e(TAG, "Failed to fetch public key: ${publicKeyResponse.code()} - $errorBody")
-                return@withContext VerificationResult.Error(
-                    "Failed to fetch server public key: ${publicKeyResponse.code()}"
+                val publicKeyResponse = api.getPublicKey()
+                if (!publicKeyResponse.isSuccessful) {
+                    val errorBody = publicKeyResponse.errorBody()?.string() ?: "Unknown error"
+                    Log.e(TAG, "Failed to fetch public key: ${publicKeyResponse.code()} - $errorBody")
+                    return@withContext VerificationResult.Error(
+                        "Failed to fetch server public key: ${publicKeyResponse.code()}",
+                    )
+                }
+
+                val publicKeyData =
+                    publicKeyResponse.body()
+                        ?: return@withContext VerificationResult.Error("Empty public key response")
+
+                Log.d(
+                    TAG,
+                    "Received public key: algorithm=${publicKeyData.algorithm}, " +
+                        "parameterSet=${publicKeyData.parameterSet}, keyId=${publicKeyData.keyId}",
                 )
-            }
 
-            val publicKeyData = publicKeyResponse.body()
-                ?: return@withContext VerificationResult.Error("Empty public key response")
+                // Decode the public key
+                val publicKeyBytes = Base64.decode(publicKeyData.publicKey, Base64.NO_WRAP)
 
-            Log.d(TAG, "Received public key: algorithm=${publicKeyData.algorithm}, " +
-                      "parameterSet=${publicKeyData.parameterSet}, keyId=${publicKeyData.keyId}")
+                // Step 2: Create encrypted verification request
+                Log.d(TAG, "Step 2: Creating encrypted verification request")
+                progressCallback?.onProgress(VerificationStep.ENCRYPTING_PAYLOAD)
 
-            // Decode the public key
-            val publicKeyBytes = Base64.decode(publicKeyData.publicKey, Base64.NO_WRAP)
+                val verificationRequest =
+                    encryptionService.createVerificationRequest(
+                        merkleRoot = merkleRoot,
+                        version = version,
+                        variant = variant,
+                        serverPublicKeyBytes = publicKeyBytes,
+                    )
 
-            // Step 2: Create encrypted verification request
-            Log.d(TAG, "Step 2: Creating encrypted verification request")
-            progressCallback?.onProgress(VerificationStep.ENCRYPTING_PAYLOAD)
-
-            val verificationRequest = encryptionService.createVerificationRequest(
-                merkleRoot = merkleRoot,
-                version = version,
-                variant = variant,
-                serverPublicKeyBytes = publicKeyBytes
-            )
-
-            Log.d(TAG, "Created encrypted request: encapsulatedKey length=${verificationRequest.encapsulatedKey.length}, " +
-                      "encryptedPayload length=${verificationRequest.encryptedPayload.length}")
-
-            // Step 3: Send verification request
-            Log.d(TAG, "Step 3: Sending verification request to server")
-            progressCallback?.onProgress(VerificationStep.SENDING_REQUEST)
-
-            val verificationResponse = api.verify(verificationRequest)
-
-            // Step 4: Process response
-            Log.d(TAG, "Step 4: Processing server response")
-            progressCallback?.onProgress(VerificationStep.PROCESSING_RESPONSE)
-
-            if (!verificationResponse.isSuccessful) {
-                val errorBody = verificationResponse.errorBody()?.string() ?: "Unknown error"
-                Log.e(TAG, "Verification request failed: ${verificationResponse.code()} - $errorBody")
-                return@withContext VerificationResult.Error(
-                    "Verification failed: ${verificationResponse.code()}"
+                Log.d(
+                    TAG,
+                    "Created encrypted request: encapsulatedKey length=${verificationRequest.encapsulatedKey.length}, " +
+                        "encryptedPayload length=${verificationRequest.encryptedPayload.length}",
                 )
+
+                // Step 3: Send verification request
+                Log.d(TAG, "Step 3: Sending verification request to server")
+                progressCallback?.onProgress(VerificationStep.SENDING_REQUEST)
+
+                val verificationResponse = api.verify(verificationRequest)
+
+                // Step 4: Process response
+                Log.d(TAG, "Step 4: Processing server response")
+                progressCallback?.onProgress(VerificationStep.PROCESSING_RESPONSE)
+
+                if (!verificationResponse.isSuccessful) {
+                    val errorBody = verificationResponse.errorBody()?.string() ?: "Unknown error"
+                    Log.e(TAG, "Verification request failed: ${verificationResponse.code()} - $errorBody")
+                    return@withContext VerificationResult.Error(
+                        "Verification failed: ${verificationResponse.code()}",
+                    )
+                }
+
+                val response =
+                    verificationResponse.body()
+                        ?: return@withContext VerificationResult.Error("Empty verification response")
+
+                Log.d(TAG, "Verification complete: status=${response.status}, message=${response.message}")
+                progressCallback?.onProgress(VerificationStep.COMPLETE)
+
+                VerificationResult.Success(response)
+            } catch (e: java.net.ConnectException) {
+                Log.e(TAG, "Connection failed", e)
+                VerificationResult.Error("Cannot connect to server. Is the server running?", e)
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.e(TAG, "Connection timeout", e)
+                VerificationResult.Error("Connection timeout. Please try again.", e)
+            } catch (e: java.security.GeneralSecurityException) {
+                Log.e(TAG, "Encryption error", e)
+                VerificationResult.Error("Encryption failed: ${e.message}", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error", e)
+                VerificationResult.Error("Unexpected error: ${e.message}", e)
             }
-
-            val response = verificationResponse.body()
-                ?: return@withContext VerificationResult.Error("Empty verification response")
-
-            Log.d(TAG, "Verification complete: status=${response.status}, message=${response.message}")
-            progressCallback?.onProgress(VerificationStep.COMPLETE)
-
-            VerificationResult.Success(response)
-
-        } catch (e: java.net.ConnectException) {
-            Log.e(TAG, "Connection failed", e)
-            VerificationResult.Error("Cannot connect to server. Is the server running?", e)
-        } catch (e: java.net.SocketTimeoutException) {
-            Log.e(TAG, "Connection timeout", e)
-            VerificationResult.Error("Connection timeout. Please try again.", e)
-        } catch (e: java.security.GeneralSecurityException) {
-            Log.e(TAG, "Encryption error", e)
-            VerificationResult.Error("Encryption failed: ${e.message}", e)
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error", e)
-            VerificationResult.Error("Unexpected error: ${e.message}", e)
         }
-    }
 }
-

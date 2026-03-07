@@ -323,7 +323,7 @@ anchorpq-server/
 ## Dependencies
 
 - **Quarkus 3.x** - Supersonic Subatomic Java Framework
-- **Bouncy Castle 1.77** - Post-quantum cryptography (ML-KEM)
+- **Bouncy Castle 1.83** - Post-quantum cryptography (ML-KEM)
 - **PostgreSQL** - Primary database
 - **H2** - In-memory database for testing
 

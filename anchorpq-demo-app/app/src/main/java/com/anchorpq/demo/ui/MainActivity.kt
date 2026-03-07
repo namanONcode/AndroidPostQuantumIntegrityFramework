@@ -24,7 +24,6 @@ import com.anchorpq.demo.util.IntegrityConfig
  * 3. Shows the verification status from the server
  */
 class MainActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
 
@@ -84,9 +83,10 @@ class MainActivity : AppCompatActivity() {
 
         // Observe server response
         viewModel.serverResponse.observe(this) { response ->
-            binding.tvServerResponse.text = response.ifEmpty {
-                "Server response will appear here..."
-            }
+            binding.tvServerResponse.text =
+                response.ifEmpty {
+                    "Server response will appear here..."
+                }
         }
     }
 
@@ -105,7 +105,10 @@ class MainActivity : AppCompatActivity() {
         resetCardStyle()
     }
 
-    private fun showSuccessState(status: VerificationStatus, message: String) {
+    private fun showSuccessState(
+        status: VerificationStatus,
+        message: String,
+    ) {
         binding.progressBar.visibility = View.GONE
         binding.btnVerify.isEnabled = true
 
@@ -190,4 +193,3 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Merkle root copied to clipboard", Toast.LENGTH_SHORT).show()
     }
 }
-

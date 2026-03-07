@@ -20,12 +20,12 @@ import java.time.Instant
  * 3. Creating the verification request
  */
 class IntegrityEncryptionService {
-
     private val mlKemClient = MLKemClient()
-    private val gson: Gson = GsonBuilder()
-        .setPrettyPrinting()
-        .disableHtmlEscaping()
-        .create()
+    private val gson: Gson =
+        GsonBuilder()
+            .setPrettyPrinting()
+            .disableHtmlEscaping()
+            .create()
     private val secureRandom = SecureRandom()
 
     /**
@@ -45,7 +45,7 @@ class IntegrityEncryptionService {
         version: String,
         variant: String,
         serverPublicKeyBytes: ByteArray,
-        signerFingerprint: String? = null
+        signerFingerprint: String? = null,
     ): VerificationRequest {
         // Build the integrity payload
         val payload = buildIntegrityPayload(merkleRoot, version, variant, signerFingerprint)
@@ -62,7 +62,7 @@ class IntegrityEncryptionService {
             encapsulatedKey = encodeBase64(encrypted.encapsulatedKey),
             encryptedPayload = encodeBase64(encrypted.encryptedData),
             timestamp = System.currentTimeMillis(),
-            nonce = generateNonce()
+            nonce = generateNonce(),
         )
     }
 
@@ -73,7 +73,7 @@ class IntegrityEncryptionService {
         merkleRoot: String,
         version: String,
         variant: String,
-        signerFingerprint: String?
+        signerFingerprint: String?,
     ): IntegrityPayload {
         return IntegrityPayload(
             merkleRoot = merkleRoot,
@@ -82,11 +82,12 @@ class IntegrityEncryptionService {
             timestamp = Instant.now().toString(),
             nonce = generateNonce(),
             signerFingerprint = signerFingerprint,
-            device = DeviceInfo(
-                sdk = Build.VERSION.SDK_INT.toString(),
-                model = Build.MODEL,
-                manufacturer = Build.MANUFACTURER
-            )
+            device =
+                DeviceInfo(
+                    sdk = Build.VERSION.SDK_INT.toString(),
+                    model = Build.MODEL,
+                    manufacturer = Build.MANUFACTURER,
+                ),
         )
     }
 
@@ -112,4 +113,3 @@ class IntegrityEncryptionService {
         return encodeBase64(nonce)
     }
 }
-

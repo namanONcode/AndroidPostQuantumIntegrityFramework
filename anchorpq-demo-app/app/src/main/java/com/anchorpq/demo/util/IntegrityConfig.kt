@@ -14,24 +14,18 @@ import java.io.InputStreamReader
 data class IntegrityConfig(
     @SerializedName("merkleRoot")
     val merkleRoot: String,
-
     @SerializedName("version")
     val version: String,
-
     @SerializedName("variant")
     val variant: String,
-
     @SerializedName("hashAlgorithm")
     val algorithm: String? = null,
-
     @SerializedName("timestamp")
     val timestamp: String? = null,
-
     @SerializedName("signerFingerprint")
     val signerFingerprint: String? = null,
-
     @SerializedName("leafCount")
-    val leafCount: Int? = null
+    val leafCount: Int? = null,
 ) {
     companion object {
         private const val INTEGRITY_FILE = "integrity.json"
@@ -56,4 +50,3 @@ data class IntegrityConfig(
         }
     }
 }
-

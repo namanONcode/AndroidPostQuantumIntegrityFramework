@@ -3,8 +3,11 @@ package com.anchorpq.demo.crypto
 import org.bouncycastle.jcajce.SecretKeyWithEncapsulation
 import org.bouncycastle.jcajce.spec.KEMGenerateSpec
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider
-import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec
-import java.security.*
+import java.security.GeneralSecurityException
+import java.security.KeyFactory
+import java.security.PublicKey
+import java.security.SecureRandom
+import java.security.Security
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -22,7 +25,6 @@ import javax.crypto.spec.GCMParameterSpec
  * Security Level: Kyber-768 (equivalent to AES-192)
  */
 class MLKemClient {
-
     companion object {
         private const val KEM_ALGORITHM = "Kyber"
         private const val PROVIDER = "BCPQC"
@@ -72,7 +74,7 @@ class MLKemClient {
 
         return EncapsulationResult(
             encapsulatedKey = secretKey.encapsulation,
-            sharedSecret = secretKey
+            sharedSecret = secretKey,
         )
     }
 
@@ -85,7 +87,10 @@ class MLKemClient {
      * @throws GeneralSecurityException if encryption fails
      */
     @Throws(GeneralSecurityException::class)
-    fun encrypt(plaintext: ByteArray, sharedSecret: SecretKey): ByteArray {
+    fun encrypt(
+        plaintext: ByteArray,
+        sharedSecret: SecretKey,
+    ): ByteArray {
         // Generate random nonce
         val nonce = ByteArray(GCM_NONCE_LENGTH)
         secureRandom.nextBytes(nonce)
@@ -115,7 +120,10 @@ class MLKemClient {
      * @throws GeneralSecurityException if encryption fails
      */
     @Throws(GeneralSecurityException::class)
-    fun hybridEncrypt(plaintext: ByteArray, serverPublicKeyBytes: ByteArray): HybridEncryptedPayload {
+    fun hybridEncrypt(
+        plaintext: ByteArray,
+        serverPublicKeyBytes: ByteArray,
+    ): HybridEncryptedPayload {
         // Encapsulate shared secret
         val encapResult = encapsulate(serverPublicKeyBytes)
 
@@ -124,7 +132,7 @@ class MLKemClient {
 
         return HybridEncryptedPayload(
             encapsulatedKey = encapResult.encapsulatedKey,
-            encryptedData = encryptedData
+            encryptedData = encryptedData,
         )
     }
 
@@ -135,7 +143,7 @@ class MLKemClient {
         /** The encapsulated key (ciphertext) to send to the server */
         val encapsulatedKey: ByteArray,
         /** The shared secret for symmetric encryption */
-        val sharedSecret: SecretKey
+        val sharedSecret: SecretKey,
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -154,14 +162,14 @@ class MLKemClient {
         /** The ML-KEM encapsulated key */
         val encapsulatedKey: ByteArray,
         /** The AES-GCM encrypted data (IV || ciphertext || auth tag) */
-        val encryptedData: ByteArray
+        val encryptedData: ByteArray,
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
             other as HybridEncryptedPayload
             return encapsulatedKey.contentEquals(other.encapsulatedKey) &&
-                   encryptedData.contentEquals(other.encryptedData)
+                encryptedData.contentEquals(other.encryptedData)
         }
 
         override fun hashCode(): Int {
@@ -171,4 +179,3 @@ class MLKemClient {
         }
     }
 }
-

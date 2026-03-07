@@ -1,16 +1,17 @@
 package com.anchorpq.demo
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.anchorpq.demo.crypto.MLKemClient
-import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.security.KeyPairGenerator
 import java.security.Security
 import java.util.Base64
@@ -21,7 +22,6 @@ import java.util.Base64
  */
 @RunWith(AndroidJUnit4::class)
 class MLKemIntegrationTest {
-
     private lateinit var mockServer: MockWebServer
     private lateinit var mlKemClient: MLKemClient
 
@@ -72,13 +72,14 @@ class MLKemIntegrationTest {
         val serverKeyPair = keyPairGenerator.generateKeyPair()
 
         // Create test payload
-        val testPayload = """
+        val testPayload =
+            """
             {
                 "merkleRoot": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
                 "version": "1.0.0",
                 "variant": "debug"
             }
-        """.trimIndent().toByteArray()
+            """.trimIndent().toByteArray()
 
         // Encrypt using hybrid encryption
         val encrypted = mlKemClient.hybridEncrypt(testPayload, serverKeyPair.public.encoded)
@@ -91,4 +92,3 @@ class MLKemIntegrationTest {
         assertTrue(encrypted.encryptedData.size >= 12 + testPayload.size + 16)
     }
 }
-

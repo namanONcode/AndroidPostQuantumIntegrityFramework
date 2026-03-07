@@ -26,7 +26,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             // Use different server URL for release if needed, but allow override for E2E
             val targetUrl = if (project.hasProperty("e2e")) "http://10.0.2.2:8080" else "https://api.anchorpq.example.com"
@@ -106,4 +106,3 @@ dependencies {
     androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
 }
-

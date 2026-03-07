@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
  * ViewModel for the main integrity verification screen.
  */
 class MainViewModel : ViewModel() {
-
     // UI State
     private val _uiState = MutableLiveData<UiState>(UiState.Idle)
     val uiState: LiveData<UiState> = _uiState
@@ -33,8 +32,11 @@ class MainViewModel : ViewModel() {
      */
     sealed class UiState {
         object Idle : UiState()
+
         object Loading : UiState()
+
         data class Success(val status: VerificationStatus, val message: String) : UiState()
+
         data class Error(val message: String) : UiState()
     }
 
@@ -52,21 +54,27 @@ class MainViewModel : ViewModel() {
      * @param version Application version
      * @param variant Build variant
      */
-    fun verifyIntegrity(merkleRoot: String, version: String, variant: String) {
-        val repo = repository ?: run {
-            _uiState.value = UiState.Error("Repository not initialized")
-            return
-        }
+    fun verifyIntegrity(
+        merkleRoot: String,
+        version: String,
+        variant: String,
+    ) {
+        val repo =
+            repository ?: run {
+                _uiState.value = UiState.Error("Repository not initialized")
+                return
+            }
 
         _uiState.value = UiState.Loading
         _serverResponse.value = ""
 
         viewModelScope.launch {
-            val progressCallback = object : IntegrityRepository.ProgressCallback {
-                override fun onProgress(step: IntegrityRepository.VerificationStep) {
-                    _progressMessage.postValue(getProgressMessage(step))
+            val progressCallback =
+                object : IntegrityRepository.ProgressCallback {
+                    override fun onProgress(step: IntegrityRepository.VerificationStep) {
+                        _progressMessage.postValue(getProgressMessage(step))
+                    }
                 }
-            }
 
             when (val result = repo.verifyIntegrity(merkleRoot, version, variant, progressCallback)) {
                 is IntegrityRepository.VerificationResult.Success -> {
@@ -124,4 +132,3 @@ class MainViewModel : ViewModel() {
         _progressMessage.value = ""
     }
 }
-

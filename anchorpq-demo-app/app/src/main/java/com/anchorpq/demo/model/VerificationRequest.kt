@@ -9,14 +9,10 @@ import com.google.gson.annotations.SerializedName
 data class VerificationRequest(
     @SerializedName("encapsulatedKey")
     val encapsulatedKey: String,
-
     @SerializedName("encryptedPayload")
     val encryptedPayload: String,
-
     @SerializedName("timestamp")
     val timestamp: Long = System.currentTimeMillis(),
-
     @SerializedName("nonce")
-    val nonce: String? = null
+    val nonce: String? = null,
 )
-

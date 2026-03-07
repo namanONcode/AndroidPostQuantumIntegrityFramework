@@ -9,15 +9,12 @@ import com.google.gson.annotations.SerializedName
 data class VerificationResponse(
     @SerializedName("status")
     val status: VerificationStatus,
-
     @SerializedName("message")
     val message: String,
-
     @SerializedName("timestamp")
     val timestamp: Long,
-
     @SerializedName("errorCode")
-    val errorCode: String? = null
+    val errorCode: String? = null,
 )
 
 /**
@@ -31,6 +28,5 @@ enum class VerificationStatus {
     RESTRICTED,
 
     @SerializedName("REJECTED")
-    REJECTED
+    REJECTED,
 }
-

@@ -19,4 +19,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "AnchorPQ-Demo"
 include(":app")
-

@@ -9,17 +9,12 @@ import com.google.gson.annotations.SerializedName
 data class PublicKeyResponse(
     @SerializedName("publicKey")
     val publicKey: String,
-
     @SerializedName("parameterSet")
     val parameterSet: String,
-
     @SerializedName("algorithm")
     val algorithm: String,
-
     @SerializedName("generatedAt")
     val generatedAt: Long,
-
     @SerializedName("keyId")
-    val keyId: String
+    val keyId: String,
 )
-

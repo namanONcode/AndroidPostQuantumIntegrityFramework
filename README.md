@@ -5,7 +5,7 @@
 [![CI Build](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/ci.yml/badge.svg)](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/codeql.yml/badge.svg)](https://github.com/namanoncode/AndroidPostQuantumIntegrityFramework/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Gradle Plugin](https://img.shields.io/badge/Gradle-8.0%2B-green.svg)](https://gradle.org/)
+[![Gradle Plugin](https://img.shields.io/badge/Gradle-9.3%2B-green.svg)](https://gradle.org/)
 [![Android](https://img.shields.io/badge/Android-API%2026%2B-brightgreen.svg)](https://developer.android.com/)
 [![Quarkus](https://img.shields.io/badge/Quarkus-3.8%2B-red.svg)](https://quarkus.io/)
 
@@ -82,7 +82,7 @@ The Android Post-Quantum Integrity Framework consists of:
 | 📄 **Integrity Metadata** | JSON/XML files with build information and Merkle root |
 | 📱 **Assets Integration** | Automatically packages integrity data into your APK |
 | 🔐 **ML-KEM Encryption** | Post-quantum secure communication for runtime reporting |
-| 🤖 **AGP 8+ Compatible** | Works with Android Gradle Plugin 8.x |
+| 🤖 **AGP 9+ Compatible** | Works with Android Gradle Plugin 9.x with built-in Kotlin |
 | ⚡ **Automatic Integration** | Hooks into standard build lifecycle |
 | 🔧 **Configurable** | Multiple hash algorithms and output formats |
 
@@ -285,22 +285,20 @@ buildscript {
         }
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.2.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
+        classpath("com.android.tools.build:gradle:9.0.1")
         
         // Include the local integrity plugin JAR
         classpath(files("path/to/AndroidPostQuantumIntegrityFramework/build/libs/AndroidPostQuantumIntegrityFramework-1.0.0.jar"))
         
         // Plugin dependencies (required)
-        classpath("org.bouncycastle:bcprov-jdk18on:1.78.1")
-        classpath("org.bouncycastle:bcpkix-jdk18on:1.78.1")
-        classpath("com.google.code.gson:gson:2.10.1")
+        classpath("org.bouncycastle:bcprov-jdk18on:1.83")
+        classpath("org.bouncycastle:bcpkix-jdk18on:1.83")
+        classpath("com.google.code.gson:gson:2.13.2")
     }
 }
 
 plugins {
-    id("com.android.application") version "8.2.0" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.22" apply false
+    id("com.android.application") version "9.0.1" apply false
 }
 ```
 
@@ -363,7 +361,6 @@ In your app module's `app/build.gradle.kts`:
 ```kotlin
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("io.github.namanoncode.anchorpq")  // Add this line
 }
 
@@ -409,11 +406,11 @@ anchorpq {
 
 dependencies {
     // Bouncy Castle for ML-KEM (post-quantum crypto)
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.83")
     
     // Gson for JSON parsing
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.13.2")
     
     // Your other dependencies...
 }
@@ -807,7 +804,7 @@ docker-compose up --build
 
 # 3. Build the demo app
 cd anchorpq-demo-app
-../gradlew assembleDebug
+./gradlew assembleDebug
 
 # 4. Install on emulator
 adb install app/build/outputs/apk/debug/app-debug.apk
@@ -1060,27 +1057,24 @@ android {
 Error while executing process jlink with arguments...
 ```
 
-**Solution:** Use Java 8 or 11 compatibility:
+**Solution:** Use a standard JDK 17 (e.g., Eclipse Temurin). GraalVM JDK may have jlink incompatibilities with Android SDK:
 
 ```kotlin
 android {
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 ```
 
 #### 5. Gradle Version Compatibility
 
-If you encounter configuration mutation errors, ensure you're using Gradle 8.x with AGP 8.x:
+AGP 9.0+ requires Gradle 9.3.1+:
 
 ```properties
 # gradle/wrapper/gradle-wrapper.properties
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.3.1-all.zip
 ```
 
 ### Debug Logging
@@ -1188,11 +1182,11 @@ curl -X POST http://your-server:8080/admin/records \
 
 | Requirement | Version |
 |-------------|---------|
-| Gradle | 8.0+ (8.5 recommended) |
-| Java | 8, 11, or 17 |
-| Android Gradle Plugin | 8.0+ |
-| Android SDK | API 26+ (minSdk) |
-| Kotlin | 1.9+ (optional) |
+| Gradle | 9.3.1+ |
+| Java | 17 |
+| Android Gradle Plugin | 9.0+ |
+| Android SDK | API 24+ (minSdk) |
+| Kotlin | Built-in with AGP 9.0 |
 
 ### Server Requirements
 
@@ -1208,9 +1202,9 @@ The plugin requires these dependencies on the classpath:
 
 ```kotlin
 dependencies {
-    classpath("org.bouncycastle:bcprov-jdk18on:1.78.1")
-    classpath("org.bouncycastle:bcpkix-jdk18on:1.78.1")
-    classpath("com.google.code.gson:gson:2.10.1")
+    classpath("org.bouncycastle:bcprov-jdk18on:1.83")
+    classpath("org.bouncycastle:bcpkix-jdk18on:1.83")
+    classpath("com.google.code.gson:gson:2.13.2")
 }
 ```
 

@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit
  * Singleton object providing configured Retrofit instance for AnchorPQ API.
  */
 object ApiClient {
-
     private const val CONNECT_TIMEOUT = 30L
     private const val READ_TIMEOUT = 30L
     private const val WRITE_TIMEOUT = 30L
@@ -33,24 +32,27 @@ object ApiClient {
     }
 
     private fun createRetrofit(baseUrl: String): Retrofit {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-
-        val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
-            .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
-            .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
-            .addInterceptor(loggingInterceptor)
-            .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Accept", "application/json")
-                    .addHeader("User-Agent", "AnchorPQ-Demo-Android/1.0")
-                    .build()
-                chain.proceed(request)
+        val loggingInterceptor =
+            HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
             }
-            .build()
+
+        val okHttpClient =
+            OkHttpClient.Builder()
+                .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+                .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
+                .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
+                .addInterceptor(loggingInterceptor)
+                .addInterceptor { chain ->
+                    val request =
+                        chain.request().newBuilder()
+                            .addHeader("Content-Type", "application/json")
+                            .addHeader("Accept", "application/json")
+                            .addHeader("User-Agent", "AnchorPQ-Demo-Android/1.0")
+                            .build()
+                    chain.proceed(request)
+                }
+                .build()
 
         return Retrofit.Builder()
             .baseUrl(baseUrl)
@@ -68,4 +70,3 @@ object ApiClient {
         baseUrl = ""
     }
 }
-

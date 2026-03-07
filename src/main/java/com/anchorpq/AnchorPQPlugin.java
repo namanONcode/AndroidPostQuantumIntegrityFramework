@@ -161,9 +161,17 @@ public class AnchorPQPlugin implements Plugin<Project> {
                   task.getOutputDirectory()
                       .set(new File(project.getBuildDir(), "anchorpq/" + variant));
 
-                  // Configure input directory based on project type
-                  File classesDir = findClassesDirectory(project, variant);
-                  task.getClassesDirectory().set(classesDir);
+                  // Configure input directory lazily - resolved at execution time
+                  task.getClassesDirectory()
+                      .set(
+                          project.provider(
+                              () -> {
+                                File resolved = findClassesDirectory(project, variant);
+                                return project
+                                    .getLayout()
+                                    .getProjectDirectory()
+                                    .dir(project.relativePath(resolved));
+                              }));
                 });
 
     // Register GenerateMetadataTask
@@ -316,17 +324,17 @@ public class AnchorPQPlugin implements Plugin<Project> {
   }
 
   private File findClassesDirectory(Project project, String variant) {
-    // Try Kotlin classes path first (most common for Android Kotlin projects)
-    File kotlinPath = new File(project.getBuildDir(), "tmp/kotlin-classes/" + variant);
-    if (kotlinPath.exists()) {
-      return kotlinPath;
-    }
-
-    // Try Android-style path (Java)
+    // Try Android-style path first (Java + Kotlin with AGP 9.0 built-in Kotlin)
     File androidPath =
         new File(project.getBuildDir(), "intermediates/javac/" + variant + "/classes");
     if (androidPath.exists()) {
       return androidPath;
+    }
+
+    // Try Kotlin classes path (pre-AGP 9.0 with standalone Kotlin plugin)
+    File kotlinPath = new File(project.getBuildDir(), "tmp/kotlin-classes/" + variant);
+    if (kotlinPath.exists()) {
+      return kotlinPath;
     }
 
     // Try alternative Android path
@@ -348,8 +356,8 @@ public class AnchorPQPlugin implements Plugin<Project> {
       return javaPath;
     }
 
-    // Default to Kotlin path for Android projects (will be created during build)
-    return kotlinPath;
+    // Default to intermediates/javac path (AGP 9.0 standard)
+    return androidPath;
   }
 
   private String findCompileTaskName(String variant) {
