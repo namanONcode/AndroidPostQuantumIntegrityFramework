@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
     jacoco
     id("com.diffplug.spotless") version "8.2.1"
-    id("com.gradle.plugin-publish") version "2.0.0"
+    id("com.gradle.plugin-publish") version "2.1.0"
 }
 
 group = "io.github.namanoncode"
