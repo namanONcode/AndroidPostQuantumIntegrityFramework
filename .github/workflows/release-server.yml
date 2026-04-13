@@ -90,7 +90,7 @@ jobs:
           cd release && zip -r ../anchorpq-server-${{ steps.get_version.outputs.VERSION }}.zip .
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: server-v${{ steps.get_version.outputs.VERSION }}
           name: AnchorPQ Server v${{ steps.get_version.outputs.VERSION }}
