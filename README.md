@@ -11,6 +11,12 @@
 
 A comprehensive framework for **build-time integrity verification** and **runtime server-anchored validation** of Android applications using **Merkle trees** and **post-quantum cryptography (ML-KEM/CRYSTALS-Kyber)**.
 
+## 🎥 Demo
+
+See real-time APK tampering detection using post-quantum cryptography:
+
+[![Watch the demo](https://img.youtube.com/vi/Ek7sttNZsLM/maxresdefault.jpg)](https://youtu.be/Ek7sttNZsLM)
+
 ## 🏗️ Project Structure
 
 This monorepo contains three main components:
