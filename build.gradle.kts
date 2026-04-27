@@ -58,7 +58,7 @@ dependencies {
     compileOnly("com.android.tools.build:gradle:9.1.1")
 
     // Gson for JSON handling
-    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.google.code.gson:gson:2.14.0")
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:6.0.3"))
