@@ -51,8 +51,8 @@ gradlePlugin {
 
 dependencies {
     // Bouncy Castle for ML-KEM (CRYSTALS-Kyber) support
-    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.84")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.85.2")
 
     // Android Gradle Plugin for AGP integration
     compileOnly("com.android.tools.build:gradle:9.3.1")

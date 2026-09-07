@@ -82,8 +82,8 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.5.0")
 
     // Bouncy Castle for ML-KEM (Post-Quantum Crypto)
-    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.84")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.85.2")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
